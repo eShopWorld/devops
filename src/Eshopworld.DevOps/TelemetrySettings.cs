@@ -1,4 +1,4 @@
-﻿namespace Eshopworld.DevOps.Configuration
+﻿namespace Eshopworld.DevOps
 {
     /// <summary>
     /// Contains settings related to Telemetry.

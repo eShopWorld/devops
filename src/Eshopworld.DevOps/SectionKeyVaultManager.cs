@@ -1,9 +1,9 @@
-﻿using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
-using System;
-
-namespace Eshopworld.DevOps.Configuration
+﻿namespace Eshopworld.DevOps
 {
+    using System;
+    using Microsoft.Azure.KeyVault.Models;
+    using Microsoft.Extensions.Configuration.AzureKeyVault;
+
     /// <inheritdoc />
     /// <summary>
     /// this class plugs in the Configuration Extensions API and loads keys into dedicated naming scope

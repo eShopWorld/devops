@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Eshopworld.DevOps.Configuration
+namespace Eshopworld.DevOps
 {
     /// <summary>
-    /// Core configuration builder implementation with specific loading sequence built in
+    /// Top level pool of SDK related functionality offered as part of platform
     /// </summary>
-    public static class CoreConfiguration
+    // ReSharper disable once InconsistentNaming
+    public static partial class EswDevOpsSdk
     {
         /// <summary>
         /// Builds the <see cref="ConfigurationBuilder"/> and retrieves all main config sections from the resulting
@@ -26,7 +27,7 @@ namespace Eshopworld.DevOps.Configuration
         ///     #5 Try to get the Vaul setting from configuration
         ///     #6 If Vault details are present, load configuration from the target vault
         /// </remarks>
-        public static IConfigurationRoot Build(string basePath, string environment = null, bool useTest = false)
+        public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null, bool useTest = false)
         {
             var configBuilder = new ConfigurationBuilder().SetBasePath(basePath)
                                                           .AddJsonFile("appsettings.json");
@@ -49,20 +50,14 @@ namespace Eshopworld.DevOps.Configuration
 
             if (!string.IsNullOrEmpty(vault))
             {
-                // TODO: when packaged, improve this by binding a POCO (inside the package) to it and add a section to the settings names
                 configBuilder.AddAzureKeyVault(
                     $"https://{vault}.vault.azure.net/",
                     config["KeyVaultClientId"],
                     config["KeyVaultClientSecret"],
                     new SectionKeyVaultManager());
-
-                // TODO: once we have scanning and this code wired together, need to re-evaluate
             }
 
             return configBuilder.Build();
         }
     }
-
-    // TODO: add reload logic through a trasparent timer
-    // TODO: once in KV, reload logic should be added to remove the need for restarts and needs to be written since KV doesn't have reload functionality built into it's package
 }
