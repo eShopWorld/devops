@@ -16,7 +16,7 @@
     <Description>eShopWorld DevOps SDK artefacts</Description>
     <DebugType>Full</DebugType>
     <LangVersion>latest</LangVersion>
-
+    <IncludeSource>True</IncludeSource>
   </PropertyGroup>
 
   <ItemGroup>
