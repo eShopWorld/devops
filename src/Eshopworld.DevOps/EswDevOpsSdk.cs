@@ -123,7 +123,6 @@ namespace Eshopworld.DevOps
             }
         }
 
-        // ReSharper disable once InconsistentNaming
         private static Tuple<string, string> ResolveAADEnvVariables(EnvironmentVariableTarget target)
         {
             var clientIdVal = Environment.GetEnvironmentVariable(AADClientIdEnvVariable, target);

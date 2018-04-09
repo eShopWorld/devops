@@ -59,9 +59,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     /// <summary>
-    /// these tests should not be run on dev box with AAD auth file/env. variables  present as these will be removed
+    /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
-    [Fact, IsIntegration]
+    [Fact, IsDev]
     public void AADFlow_NoCredentials()
     {
         ClearAADCredentials();
@@ -69,9 +69,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     /// <summary>
-    /// these tests should not be run on dev box with AAD auth file/env. variables  present as these will be removed
+    /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
-    [Fact, IsIntegration]
+    [Fact, IsDev]
     public void AADFlow_AuthFile()
     {
         ClearAADCredentials();
@@ -90,9 +90,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     /// <summary>
-    /// these tests should not be run on dev box with AAD auth file/env. variables  present as these will be removed
+    /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
-    [Theory, IsIntegration]
+    [Theory, IsDev]
     [InlineData(EnvironmentVariableTarget.Process)]
     [InlineData(EnvironmentVariableTarget.User)]
     [InlineData(EnvironmentVariableTarget.Machine)]
@@ -110,9 +110,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     /// <summary>
-    /// these tests should not be run on dev box with AAD auth file/env. variables  present as these will be removed
+    /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
-    [Fact, IsIntegration]
+    [Fact, IsDev]
     public void AADFlow_EnvVariables_CheckTenantId()
     {
         ClearAADCredentials();
@@ -125,9 +125,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     /// <summary>
-    /// these tests should not be run on dev box with AAD auth file/env. variables  present as these will be removed
+    /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
-    [Theory, IsIntegration]
+    [Theory, IsDev]
     [InlineData("CI", "30c09ef3-7f8a-4a13-a864-776438027e9d")]
     [InlineData("TEST", "49c77085-e8c5-4ad2-8114-1d4e71a64cc1")]
     public void AADFlow_EnvVariables_CheckSubscriptionMapping(string envName, string expected)
