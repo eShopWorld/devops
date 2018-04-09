@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Eshopworld.Tests.Core" Version="1.0.0" />
     <PackageReference Include="FluentAssertions" Version="5.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
 

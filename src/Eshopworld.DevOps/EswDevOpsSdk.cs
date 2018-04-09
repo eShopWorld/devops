@@ -1,13 +1,20 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Eshopworld.Core;
+using Microsoft.Extensions.Configuration;
 
 namespace Eshopworld.DevOps
 {
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
     /// </summary>
-    // ReSharper disable once InconsistentNaming
-    public static partial class EswDevOpsSdk
+    public static class EswDevOpsSdk
     {
+        internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
+        internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
+        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
+
         /// <summary>
         /// Builds the <see cref="ConfigurationBuilder"/> and retrieves all main config sections from the resulting
         ///     configuration.
@@ -58,6 +65,81 @@ namespace Eshopworld.DevOps
             }
 
             return configBuilder.Build();
+        }
+
+        /// <summary>
+        /// create add context
+        /// </summary>
+        /// <returns></returns>
+        public static IAADContext CreateAADContext()
+        {
+            // try to locate auth file in app
+            var appLocalData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var authFile = Directory.GetFiles(appLocalData, "*.azureauth").FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(authFile))
+            {
+                return new AADContext {AuthFilePath = authFile};
+            }
+            
+            //fallback option - app id/secret from environment variables - resolve from process/user/machine (in that sequence)
+            var clientEnvPair = ResolveAADEnvVariables(EnvironmentVariableTarget.Process) ??
+                                ResolveAADEnvVariables(EnvironmentVariableTarget.User) ??
+                                ResolveAADEnvVariables(EnvironmentVariableTarget.Machine);
+
+            if (clientEnvPair != null)
+            {
+                return new AADContext
+                {
+                    ClientId = clientEnvPair.Item1,
+                    ClientSecret = clientEnvPair.Item2,
+                    TenantId = "3e14278f-8366-4dfd-bcc8-7e4e9d57f2c1",
+                    SubscriptionId = GetSubscriptionId()
+                };
+            }
+
+            return null; // even fallback found
+        }
+
+        private static string GetSubscriptionId()
+        {
+            var environmentName = Environment.GetEnvironmentVariable(EnvironmentEnvVariable);           
+
+            switch (environmentName?.ToUpperInvariant())
+            {
+                case "CI":
+                    return "30c09ef3-7f8a-4a13-a864-776438027e9d";
+                case "DEVELOPMENT":
+                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; 
+                case "PREPROD":
+                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
+                case "PRODUCTION":
+                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
+                case "SAND":
+                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
+                case "TEST":
+                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
+                default:
+                    throw new InvalidOperationException($"No environment name set. Check {EnvironmentEnvVariable}");
+            }
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private static Tuple<string, string> ResolveAADEnvVariables(EnvironmentVariableTarget target)
+        {
+            var clientIdVal = Environment.GetEnvironmentVariable(AADClientIdEnvVariable, target);
+            if (!string.IsNullOrWhiteSpace(clientIdVal))
+            {
+                var clientSecretVal = Environment.GetEnvironmentVariable(AADClientSecretEnvVariable, target);
+                if (string.IsNullOrWhiteSpace(clientSecretVal))
+                {
+                    throw new InvalidOperationException(
+                        $"{AADClientIdEnvVariable} variable found but no value exists for {AADClientSecretEnvVariable}");
+                }
+
+                return new Tuple<string, string>(clientIdVal, clientSecretVal);
+            }
+
+            return null;
         }
     }
 }
