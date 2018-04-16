@@ -76,8 +76,9 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     {
         ClearAADCredentials();
 
-        var appLocal = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var expectedPath = Path.Combine(appLocal, "dummy.azureauth");
+        var appLocalFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        appLocalFolder = Path.Combine(appLocalFolder, "Eshopworld");
+        var expectedPath = Path.Combine(appLocalFolder, "dummy.azureauth");
         File.WriteAllText(expectedPath, "dummy");
         var context = EswDevOpsSdk.CreateAADContext();
         context.AuthFilePath.Should().Be(expectedPath);
@@ -87,6 +88,21 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         context.SubscriptionId.Should().BeNull();
 
         ClearAADCredentials();        
+    }
+
+    [Fact, IsDev]
+    public void AADFlow_MultpleAADFiles_ExpectException()
+    {
+        ClearAADCredentials();
+
+        var appLocalFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        appLocalFolder = Path.Combine(appLocalFolder, "Eshopworld");
+        File.WriteAllText(Path.Combine(appLocalFolder, "dummy1.azureauth"), "dummy1");
+        File.WriteAllText(Path.Combine(appLocalFolder, "dummy2.azureauth"), "dummy2");
+
+        Assert.Throws<AADException>(() => EswDevOpsSdk.CreateAADContext());
+
+        ClearAADCredentials();
     }
 
     /// <summary>
@@ -152,12 +168,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
 
     private static void ClearAADCredentials()
     {        
-        //clear temp folder
-        var appLocalFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        foreach (var file in Directory.GetFiles(appLocalFolder, "*.azureauth"))
-        {
-            File.Delete(file);
-        }
+        DeleteAzureAuthFiles();
 
         //clear env variables
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientIdEnvVariable, null,  EnvironmentVariableTarget.Process);
@@ -166,6 +177,18 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientSecretEnvVariable, null, EnvironmentVariableTarget.User);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientIdEnvVariable, null, EnvironmentVariableTarget.Machine);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientSecretEnvVariable, null, EnvironmentVariableTarget.Machine);
+    }
+
+    private static void DeleteAzureAuthFiles()
+    {
+        //clear azure auth files
+        var appLocalFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        appLocalFolder = Path.Combine(appLocalFolder, "Eshopworld");
+
+        foreach (var file in Directory.GetFiles(appLocalFolder, "*.azureauth"))
+        {
+            File.Delete(file);
+        }
     }
 
     /// <summary>

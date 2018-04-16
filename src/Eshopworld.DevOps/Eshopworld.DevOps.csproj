@@ -10,8 +10,8 @@
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>
     <RepositoryUrl>https://github.com/eShopWorld/devops</RepositoryUrl>
     <PackageTags>configuration, devops</PackageTags>
-    <PackageReleaseNotes>AAD context support added</PackageReleaseNotes>
-    <Version>1.0.1</Version>
+    <PackageReleaseNotes>AAD location changes, AADException introduced</PackageReleaseNotes>
+    <Version>1.0.2</Version>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
     <DebugType>Full</DebugType>

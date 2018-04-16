@@ -13,7 +13,7 @@ namespace Eshopworld.DevOps
     {
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
-        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
+        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";        
 
         /// <summary>
         /// Builds the <see cref="ConfigurationBuilder"/> and retrieves all main config sections from the resulting
@@ -74,8 +74,7 @@ namespace Eshopworld.DevOps
         public static IAADContext CreateAADContext()
         {
             // try to locate auth file in app
-            var appLocalData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var authFile = Directory.GetFiles(appLocalData, "*.azureauth").FirstOrDefault();
+            var authFile = GetAuthFilePath();
             if (!string.IsNullOrWhiteSpace(authFile))
             {
                 return new AADContext {AuthFilePath = authFile};
@@ -100,6 +99,26 @@ namespace Eshopworld.DevOps
             return null; // even fallback found
         }
 
+        /// <summary>
+        /// get auth file path
+        /// 
+        /// note that we only support one single file in the 
+        /// </summary>
+        /// <returns>auth file path or null</returns>
+        private static string GetAuthFilePath()
+        {
+            var appLocalData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var eswLocalDataFolder = Path.Combine(appLocalData, "Eshopworld");
+            var authFiles = Directory.GetFiles(eswLocalDataFolder, "*.azureauth");
+
+            if (authFiles?.Length > 1)
+            {
+                throw new AADException($"Multiple AAD authentication file detected in {eswLocalDataFolder}. Only single file is supported.");
+            }
+            
+            return authFiles?.FirstOrDefault();
+        }
+
         private static string GetSubscriptionId()
         {
             var environmentName = Environment.GetEnvironmentVariable(EnvironmentEnvVariable);           
@@ -119,7 +138,7 @@ namespace Eshopworld.DevOps
                 case "TEST":
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
                 default:
-                    throw new InvalidOperationException($"No environment name set. Check {EnvironmentEnvVariable}");
+                    throw new AADException($"No environment name set. Check {EnvironmentEnvVariable}");
             }
         }
 
@@ -131,7 +150,7 @@ namespace Eshopworld.DevOps
                 var clientSecretVal = Environment.GetEnvironmentVariable(AADClientSecretEnvVariable, target);
                 if (string.IsNullOrWhiteSpace(clientSecretVal))
                 {
-                    throw new InvalidOperationException(
+                    throw new AADException(
                         $"{AADClientIdEnvVariable} variable found but no value exists for {AADClientSecretEnvVariable}");
                 }
 
