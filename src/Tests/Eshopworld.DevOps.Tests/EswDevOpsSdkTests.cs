@@ -11,17 +11,18 @@ using FluentAssertions;
 // ReSharper disable once CheckNamespace
 public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
 {
-    [Fact, IsIntegration]
-    public void Test_ReadFromCoreAppSettings()
+    [Fact, IsDev]
+    public void BuildConfiguration_ReadFromCoreAppSettings()
     {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, "ENV1"); //process level is fine here
+        var sut = EswDevOpsSdk.BuildConfiguration();
 
         sut["KeyRootAppSettings"].Should().BeEquivalentTo("AppSettingsValue");
     }
 
 
-    [Fact, IsIntegration]
-    public void Test_ReadFromTestAppSettings()
+    [Fact, IsDev]
+    public void BuildConfiguration_ReadFromTestAppSettings()
 
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest: true);
@@ -31,8 +32,8 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
 
 
 
-    [Fact, IsIntegration]
-    public void Test_ReadFromEnvironmentalAppSettings()
+    [Fact, IsDev]
+    public void BuildConfiguration_ReadFromEnvironmentalAppSettings()
 
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "ENV1");
@@ -41,8 +42,8 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
 
-    [Fact, IsIntegration]
-    public void Test_ReadFromEnvironmentalVariable()
+    [Fact, IsDev]
+    public void BuildConfiguration_ReadFromEnvironmentalVariable()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
@@ -50,8 +51,8 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
 
-    [Fact, IsIntegration]
-    public void Test_ReadFromKeyVault()
+    [Fact, IsDev]
+    public void BuildConfiguration_ReadFromKeyVault()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
@@ -100,7 +101,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy1.azureauth"), "dummy1");
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy2.azureauth"), "dummy2");
 
-        Assert.Throws<AADException>(() => EswDevOpsSdk.CreateAADContext());
+        Assert.Throws<DevOpsSDKException>(() => EswDevOpsSdk.CreateAADContext());
 
         ClearAADCredentials();
     }
@@ -115,7 +116,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     public void AADFlow_EnvVariables_AllLevels(EnvironmentVariableTarget target)
     {
         ClearAADCredentials();        
-        SetEnvVariableContext(target:target);
+        SetAADEnvVariableContext(target:target);
 
         var context = EswDevOpsSdk.CreateAADContext();
 
@@ -132,7 +133,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     public void AADFlow_EnvVariables_CheckTenantId()
     {
         ClearAADCredentials();
-        SetEnvVariableContext();
+        SetAADEnvVariableContext();
 
         var context = EswDevOpsSdk.CreateAADContext();
         context.TenantId.Should().Be("3e14278f-8366-4dfd-bcc8-7e4e9d57f2c1");
@@ -149,7 +150,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     public void AADFlow_EnvVariables_CheckSubscriptionMapping(string envName, string expected)
     {
         ClearAADCredentials();
-        SetEnvVariableContext(envName: envName);
+        SetAADEnvVariableContext(envName: envName);
 
         var context = EswDevOpsSdk.CreateAADContext();
 
@@ -158,7 +159,23 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         ClearAADCredentials();
     }
 
-    private static void SetEnvVariableContext(string clientId = "clientId",
+    [Theory, IsDev]
+    [InlineData("West Europe", new[] { "West Europe", "East US", "West US", "Southeast Asia" })]
+    [InlineData("East US", new[] { "East US", "West US", "West Europe", "Southeast Asia" })]
+    [InlineData("West US", new[] { "West US", "East US", "West Europe", "Southeast Asia" })]
+    [InlineData("Southeast Asia", new[] { "Southeast Asia", "West US", "East US", "West Europe" })]
+    public void CreateDeploymentContext(string regionValue, string[] expectedRegionHierarchy)
+    {
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Machine);
+
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Machine);
+
+        EswDevOpsSdk.CreateDeploymentContext().PreferredRegions.Should().Contain(expectedRegionHierarchy);
+    }
+
+    private static void SetAADEnvVariableContext(string clientId = "clientId",
         string clientSecret = "clientSecret", EnvironmentVariableTarget target = EnvironmentVariableTarget.Process, string envName = "CI")
     {
         Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envName, target);

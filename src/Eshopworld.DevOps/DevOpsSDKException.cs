@@ -4,20 +4,21 @@ using System.Runtime.Serialization;
 namespace Eshopworld.DevOps
 {
     /// <summary>
-    /// AAD specific exception
+    /// Devops SDKexception
     /// </summary>
     [Serializable]
-    public class AADException :Exception
+    // ReSharper disable once InconsistentNaming
+    public class DevOpsSDKException :Exception
     {
         /// <summary>
         /// message passing constructor
         /// </summary>
         /// <param name="msg">exception message</param>
-        public AADException(string msg):base(msg)
+        public DevOpsSDKException(string msg):base(msg)
         {            
         }
 
-        protected AADException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected DevOpsSDKException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
