@@ -88,7 +88,7 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         context.ClientSecret.Should().BeNull();
         context.SubscriptionId.Should().BeNull();
 
-        ClearAADCredentials();        
+        ClearAADCredentials();
     }
 
     [Fact, IsDev]
@@ -115,8 +115,8 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     [InlineData(EnvironmentVariableTarget.Machine)]
     public void AADFlow_EnvVariables_AllLevels(EnvironmentVariableTarget target)
     {
-        ClearAADCredentials();        
-        SetAADEnvVariableContext(target:target);
+        ClearAADCredentials();
+        SetAADEnvVariableContext(target: target);
 
         var context = EswDevOpsSdk.CreateAADContext();
 
@@ -159,20 +159,23 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         ClearAADCredentials();
     }
 
-    [Theory, IsDev]
-    [InlineData("West Europe", new[] { "West Europe", "East US", "West US", "Southeast Asia" })]
-    [InlineData("East US", new[] { "East US", "West US", "West Europe", "Southeast Asia" })]
-    [InlineData("West US", new[] { "West US", "East US", "West Europe", "Southeast Asia" })]
-    [InlineData("Southeast Asia", new[] { "Southeast Asia", "West US", "East US", "West Europe" })]
-    public void CreateDeploymentContext(string regionValue, string[] expectedRegionHierarchy)
+    public class CreateDeploymentContext
     {
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Process);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Machine);
+        [Theory, IsDev]
+        [InlineData("West Europe", new[] { "West Europe", "East US", "West US", "Southeast Asia" })]
+        [InlineData("East US", new[] { "East US", "West US", "West Europe", "Southeast Asia" })]
+        [InlineData("West US", new[] { "West US", "East US", "West Europe", "Southeast Asia" })]
+        [InlineData("Southeast Asia", new[] { "Southeast Asia", "West US", "East US", "West Europe" })]
+        public void ForAllProductionRegions(string regionValue, string[] expectedRegionHierarchy)
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Machine);
 
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Machine);
 
-        EswDevOpsSdk.CreateDeploymentContext().PreferredRegions.Should().Contain(expectedRegionHierarchy);
+            EswDevOpsSdk.CreateDeploymentContext().PreferredRegions.Should().ContainInOrder(expectedRegionHierarchy);
+        }
     }
 
     private static void SetAADEnvVariableContext(string clientId = "clientId",
@@ -184,11 +187,11 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     }
 
     private static void ClearAADCredentials()
-    {        
+    {
         DeleteAzureAuthFiles();
 
         //clear env variables
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientIdEnvVariable, null,  EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientIdEnvVariable, null, EnvironmentVariableTarget.Process);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientSecretEnvVariable, null, EnvironmentVariableTarget.Process);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientIdEnvVariable, null, EnvironmentVariableTarget.User);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.AADClientSecretEnvVariable, null, EnvironmentVariableTarget.User);

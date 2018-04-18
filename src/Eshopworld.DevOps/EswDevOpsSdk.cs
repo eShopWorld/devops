@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace Eshopworld.DevOps
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
     /// </summary>
@@ -14,13 +16,14 @@ namespace Eshopworld.DevOps
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
-        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";       
+        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
 
-        private static readonly Tuple<string, string[]>[] RegionFallbackMap = {
-            new Tuple<string, string[]>(Regions.WestEurope, new [] {Regions.WestEurope, Regions.EastUS, Regions.WestUS, Regions.SoutheastAsia}),
-            new Tuple<string, string[]>(Regions.EastUS, new [] {Regions.EastUS, Regions.WestUS, Regions.WestEurope, Regions.SoutheastAsia}),
-            new Tuple<string, string[]>(Regions.WestUS, new [] {Regions.WestUS, Regions.EastUS, Regions.WestEurope, Regions.SoutheastAsia}),
-            new Tuple<string, string[]>(Regions.SoutheastAsia, new [] {Regions.SoutheastAsia, Regions.WestUS, Regions.EastUS, Regions.WestEurope})
+        private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
+        {
+            {Regions.WestEurope,    new[] {Regions.WestEurope, Regions.EastUS, Regions.WestUS, Regions.SoutheastAsia}},
+            {Regions.EastUS,        new[] {Regions.EastUS, Regions.WestUS, Regions.WestEurope, Regions.SoutheastAsia}},
+            {Regions.WestUS,        new[] {Regions.WestUS, Regions.EastUS, Regions.WestEurope, Regions.SoutheastAsia}},
+            {Regions.SoutheastAsia, new[] {Regions.SoutheastAsia, Regions.WestUS, Regions.EastUS, Regions.WestEurope}}
         };
 
         /// <summary>
@@ -131,13 +134,13 @@ namespace Eshopworld.DevOps
                     $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
             
             //map region to hierarchy
-            var map = RegionFallbackMap.FirstOrDefault(i =>
-                string.Equals(i.Item1, region, StringComparison.OrdinalIgnoreCase));
-
-            if (map==null)
+            if (!RegionFallbackMap.ContainsKey(region))
+            {
                 throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {region}");
 
-            return new DeploymentContext {PreferredRegions = map.Item2 };
+            }
+
+            return new DeploymentContext {PreferredRegions = RegionFallbackMap[region]};
         }
 
         /// <summary>
