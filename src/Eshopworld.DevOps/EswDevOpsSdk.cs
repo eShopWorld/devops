@@ -20,10 +20,10 @@ namespace Eshopworld.DevOps
 
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
-            {Regions.WestEurope,    new[] {Regions.WestEurope, Regions.EastUS, Regions.WestUS, Regions.SoutheastAsia}},
-            {Regions.EastUS,        new[] {Regions.EastUS, Regions.WestUS, Regions.WestEurope, Regions.SoutheastAsia}},
-            {Regions.WestUS,        new[] {Regions.WestUS, Regions.EastUS, Regions.WestEurope, Regions.SoutheastAsia}},
-            {Regions.SoutheastAsia, new[] {Regions.SoutheastAsia, Regions.WestUS, Regions.EastUS, Regions.WestEurope}}
+            {Regions.WestEurope,    new[] {Regions.WestEurope,    Regions.EastUS, Regions.WestUS,     Regions.SoutheastAsia}},
+            {Regions.EastUS,        new[] {Regions.EastUS,        Regions.WestUS, Regions.WestEurope, Regions.SoutheastAsia}},
+            {Regions.WestUS,        new[] {Regions.WestUS,        Regions.EastUS, Regions.WestEurope, Regions.SoutheastAsia}},
+            {Regions.SoutheastAsia, new[] {Regions.SoutheastAsia, Regions.WestUS, Regions.EastUS,     Regions.WestEurope}}
         };
 
         /// <summary>
@@ -137,7 +137,6 @@ namespace Eshopworld.DevOps
             if (!RegionFallbackMap.ContainsKey(region))
             {
                 throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {region}");
-
             }
 
             return new DeploymentContext {PreferredRegions = RegionFallbackMap[region]};
