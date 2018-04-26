@@ -11,12 +11,14 @@
     <RepositoryUrl>https://github.com/eShopWorld/devops</RepositoryUrl>
     <PackageTags>configuration, devops</PackageTags>
     <PackageReleaseNotes>added support for .INTEGRATION. json config files</PackageReleaseNotes>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
     <DebugType>Full</DebugType>
     <LangVersion>latest</LangVersion>
     <IncludeSource>True</IncludeSource>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <FileVersion>1.0.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
