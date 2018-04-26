@@ -10,7 +10,7 @@
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>
     <RepositoryUrl>https://github.com/eShopWorld/devops</RepositoryUrl>
     <PackageTags>configuration, devops</PackageTags>
-    <PackageReleaseNotes>AAD auth file expected location changes, DevOps global exception introduced, DeploymentContext added</PackageReleaseNotes>
+    <PackageReleaseNotes>added support for .INTEGRATION. json config files</PackageReleaseNotes>
     <Version>1.0.3</Version>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>

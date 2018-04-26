@@ -22,14 +22,13 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
 
 
     [Fact, IsDev]
-    public void BuildConfiguration_ReadFromTestAppSettings()
+    public void BuildConfiguration_NonTestMode()
 
     {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest: true);
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
-        sut["KeyTestAppSettings"].Should().BeEquivalentTo("TestAppSettingsValue");
+        sut["KeyTestAppSettings"].Should().BeNullOrEmpty();
     }
-
 
 
     [Fact, IsDev]
@@ -57,6 +56,13 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
         sut["keyVaultItem"].Should().BeEquivalentTo("keyVaultItemValue");
+    }
+
+    [Fact, IsDev]
+    public void BuildConfiguraiton_TestMode()
+    {
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest:true);
+        sut["KeyTestAppSettings"].Should().Be("IntegrationAppSettingsValue");
     }
 
     /// <summary>
