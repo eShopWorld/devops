@@ -168,10 +168,10 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
     public class CreateDeploymentContext
     {
         [Theory, IsDev]
-        [InlineData("West Europe", new[] { "West Europe", "East US", "West US", "Southeast Asia" })]
-        [InlineData("East US", new[] { "East US", "West US", "West Europe", "Southeast Asia" })]
-        [InlineData("West US", new[] { "West US", "East US", "West Europe", "Southeast Asia" })]
-        [InlineData("Southeast Asia", new[] { "Southeast Asia", "West US", "East US", "West Europe" })]
+        [InlineData("West Europe", new[] { "West Europe", "East US", "Australia Southeast", "Southeast Asia" })]
+        [InlineData("East US", new[] { "East US", "Australia Southeast", "West Europe", "Southeast Asia" })]
+        [InlineData("Australia Southeast", new[] { "Australia Southeast", "East US", "West Europe", "Southeast Asia" })]
+        [InlineData("Southeast Asia", new[] { "Southeast Asia", "Australia Southeast", "East US", "West Europe" })]
         public void ForAllProductionRegions(string regionValue, string[] expectedRegionHierarchy)
         {
             Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
