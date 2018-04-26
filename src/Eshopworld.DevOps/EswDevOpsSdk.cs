@@ -29,7 +29,7 @@ namespace Eshopworld.DevOps
         /// <summary>
         /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string, bool)"/>
         /// </summary>
-        /// <param name="useTest">true to force a .TEST.json optional configuration load, false otherwise.</param>
+        /// <param name="useTest">true to force a .INTEGRATION.json optional configuration load, false otherwise.</param>
         /// <returns>configuration root instance</returns>
         public static IConfigurationRoot BuildConfiguration(bool useTest = false)
         {
@@ -45,7 +45,7 @@ namespace Eshopworld.DevOps
         /// </summary>
         /// <param name="basePath">The base path to use when looking for the JSON settings files.</param>
         /// <param name="environment">The name of the environment to scan for environmental configuration, null to skip.</param>
-        /// <param name="useTest">true to force a .TEST.json optional configuration load, false otherwise.</param>
+        /// <param name="useTest">true to force a .INTEGRATION.json optional configuration load, false otherwise.</param>
         /// <returns>The configuration root after building the builder.</returns>
         /// <remarks>
         /// The configuration flow is:
@@ -69,6 +69,7 @@ namespace Eshopworld.DevOps
             if (useTest)
             {
                 configBuilder.AddJsonFile("appsettings.TEST.json", optional: true);
+                configBuilder.AddJsonFile("appsettings.INTEGRATION.json", optional: true);
             }
 
             configBuilder.AddJsonFile("appsettings.KV.json", optional: true);
