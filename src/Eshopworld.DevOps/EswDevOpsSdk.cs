@@ -20,10 +20,10 @@ namespace Eshopworld.DevOps
 
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
-            {Regions.WestEurope,    new[] {Regions.WestEurope,    Regions.EastUS, Regions.WestUS,     Regions.SoutheastAsia}},
-            {Regions.EastUS,        new[] {Regions.EastUS,        Regions.WestUS, Regions.WestEurope, Regions.SoutheastAsia}},
-            {Regions.WestUS,        new[] {Regions.WestUS,        Regions.EastUS, Regions.WestEurope, Regions.SoutheastAsia}},
-            {Regions.SoutheastAsia, new[] {Regions.SoutheastAsia, Regions.WestUS, Regions.EastUS,     Regions.WestEurope}}
+            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS,             Regions.AustraliaSouthEast, Regions.SoutheastAsia}},
+            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.AustraliaSouthEast, Regions.WestEurope,         Regions.SoutheastAsia}},
+            {Regions.AustraliaSouthEast,  new[] {Regions.AustraliaSouthEast,  Regions.EastUS,             Regions.WestEurope,         Regions.SoutheastAsia}},
+            {Regions.SoutheastAsia,       new[] {Regions.SoutheastAsia,       Regions.AustraliaSouthEast, Regions.EastUS,             Regions.WestEurope}}
         };
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Eshopworld.DevOps
             // ReSharper disable once InconsistentNaming
             internal const string EastUS = "East US";
             // ReSharper disable once InconsistentNaming
-            internal const string WestUS = "West US";
+            internal const string AustraliaSouthEast = "Australia Southeast";
             internal const string SoutheastAsia = "Southeast Asia";
         }
     }
