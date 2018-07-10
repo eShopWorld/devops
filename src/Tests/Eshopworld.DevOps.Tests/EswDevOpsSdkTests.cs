@@ -49,15 +49,6 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         sut["PATH"].Should().NotBeNullOrEmpty();
     }
 
-
-    [Fact, IsDev]
-    public void BuildConfiguration_ReadFromKeyVault()
-    {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
-
-        sut["keyVaultItem"].Should().BeEquivalentTo("keyVaultItemValue");
-    }
-
     [Fact, IsDev]
     public void BuildConfiguraiton_TestMode()
     {

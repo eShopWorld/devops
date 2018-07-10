@@ -1,12 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Eshopworld.Core;
-using Microsoft.Extensions.Configuration;
-
-namespace Eshopworld.DevOps
+﻿namespace Eshopworld.DevOps
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Eshopworld.Core;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.KeyVault;
     using System.Collections.Generic;
+    using Microsoft.Azure.Services.AppAuthentication;
 
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
@@ -15,6 +16,7 @@ namespace Eshopworld.DevOps
     {
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
+        internal const string KeyVaultConfigSourceUrlKey = "KeyVaultConfigSourceUrl";
         internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
         internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
 
@@ -71,20 +73,18 @@ namespace Eshopworld.DevOps
                 configBuilder.AddJsonFile("appsettings.TEST.json", optional: true);
                 configBuilder.AddJsonFile("appsettings.INTEGRATION.json", optional: true);
             }
-
-            configBuilder.AddJsonFile("appsettings.KV.json", optional: true);
+            
             configBuilder.AddEnvironmentVariables();
 
             var config = configBuilder.Build();
-            var vault = config["KeyVaultName"];
+            var vaultUrl = config["KeyVaultConfigSourceUrlKey"];
 
-            if (!string.IsNullOrEmpty(vault))
+            if (!string.IsNullOrEmpty(vaultUrl))
             {
-                configBuilder.AddAzureKeyVault(
-                    $"https://{vault}.vault.azure.net/",
-                    config["KeyVaultClientId"],
-                    config["KeyVaultClientSecret"],
+                configBuilder.AddAzureKeyVault(vaultUrl,
+                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new SectionKeyVaultManager());
+              
             }
 
             return configBuilder.Build();
