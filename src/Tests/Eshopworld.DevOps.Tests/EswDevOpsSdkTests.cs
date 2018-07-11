@@ -2,14 +2,13 @@
 using System.IO;
 using System.Reflection;
 using Eshopworld.DevOps;
-using Eshopworld.DevOps.Tests;
 using Eshopworld.Tests.Core;
 using Xunit;
 using FluentAssertions;
 
 // ReSharper disable once InconsistentNaming
 // ReSharper disable once CheckNamespace
-public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
+public class EswDevOpsSdkTests
 {
     [Fact, IsDev]
     public void BuildConfiguration_ReadFromCoreAppSettings()
