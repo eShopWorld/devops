@@ -16,7 +16,7 @@
     {
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
-        internal const string KeyVaultConfigSourceUrlKey = "KeyVaultConfigSourceUrl";
+        internal const string KeyVaultUrlKey = "KeyVaultUrl";
         internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
         internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
 
@@ -76,7 +76,7 @@
             configBuilder.AddEnvironmentVariables();
 
             var config = configBuilder.Build();
-            var vaultUrl = config["KeyVaultConfigSourceUrlKey"];
+            var vaultUrl = config[KeyVaultUrlKey];
 
             if (!string.IsNullOrEmpty(vaultUrl))
             {
