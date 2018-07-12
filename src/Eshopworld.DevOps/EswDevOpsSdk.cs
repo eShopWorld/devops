@@ -54,9 +54,8 @@
         ///     #1 Get the default appsettings.json
         ///     #2 Get the environmental appsettings.{ENV}.json
         ///     #3 If it's a test, load the [optional] appsettings.TEST.json
-        ///     #4 Load the optional KeyVault settings with connection details
-        ///     #5 Try to get the Vaul setting from configuration
-        ///     #6 If Vault details are present, load configuration from the target vault
+        ///     #4 Try to get the Vault setting from configuration
+        ///     #5 If Vault details are present, load configuration from the target vault
         /// </remarks>
         public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null, bool useTest = false)
         {
