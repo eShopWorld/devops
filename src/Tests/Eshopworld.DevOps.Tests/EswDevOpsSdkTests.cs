@@ -55,6 +55,13 @@ public class EswDevOpsSdkTests
         sut["KeyTestAppSettings"].Should().Be("IntegrationAppSettingsValue");
     }
 
+    [Fact, IsLayer1]
+    public void BuildConfiguration_MSIAuthenticationTest()
+    {
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI", useTest: true);
+        sut["keyVaultItem"].Should().Be("keyVaultItemValue");   
+    }
+
     /// <summary>
     /// these tests overwrite the AAD auth file(s) and environment variables so run these tests only when required
     /// </summary>
