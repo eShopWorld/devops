@@ -1,12 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Eshopworld.Core;
-using Microsoft.Extensions.Configuration;
-
-namespace Eshopworld.DevOps
+﻿namespace Eshopworld.DevOps
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Eshopworld.Core;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.KeyVault;
     using System.Collections.Generic;
+    using Microsoft.Azure.Services.AppAuthentication;
 
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
@@ -15,6 +16,7 @@ namespace Eshopworld.DevOps
     {
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
+        internal const string KeyVaultUrlKey = "KeyVaultUrl";
         internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
         internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
 
@@ -52,9 +54,8 @@ namespace Eshopworld.DevOps
         ///     #1 Get the default appsettings.json
         ///     #2 Get the environmental appsettings.{ENV}.json
         ///     #3 If it's a test, load the [optional] appsettings.TEST.json
-        ///     #4 Load the optional KeyVault settings with connection details
-        ///     #5 Try to get the Vaul setting from configuration
-        ///     #6 If Vault details are present, load configuration from the target vault
+        ///     #4 Try to get the Vault setting from configuration
+        ///     #5 If Vault details are present, load configuration from the target vault
         /// </remarks>
         public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null, bool useTest = false)
         {
@@ -71,20 +72,18 @@ namespace Eshopworld.DevOps
                 configBuilder.AddJsonFile("appsettings.TEST.json", optional: true);
                 configBuilder.AddJsonFile("appsettings.INTEGRATION.json", optional: true);
             }
-
-            configBuilder.AddJsonFile("appsettings.KV.json", optional: true);
+            
             configBuilder.AddEnvironmentVariables();
 
             var config = configBuilder.Build();
-            var vault = config["KeyVaultName"];
+            var vaultUrl = config[KeyVaultUrlKey];
 
-            if (!string.IsNullOrEmpty(vault))
+            if (!string.IsNullOrEmpty(vaultUrl))
             {
-                configBuilder.AddAzureKeyVault(
-                    $"https://{vault}.vault.azure.net/",
-                    config["KeyVaultClientId"],
-                    config["KeyVaultClientSecret"],
+                configBuilder.AddAzureKeyVault(vaultUrl,
+                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new SectionKeyVaultManager());
+              
             }
 
             return configBuilder.Build();

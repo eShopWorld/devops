@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 
@@ -10,22 +10,21 @@
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>
     <RepositoryUrl>https://github.com/eShopWorld/devops</RepositoryUrl>
     <PackageTags>configuration, devops</PackageTags>
-    <PackageReleaseNotes>region hierarchy adjusted</PackageReleaseNotes>
-    <Version>1.0.5</Version>
+    <PackageReleaseNotes>MSI authentication added for KV</PackageReleaseNotes>
+    <Version>1.0.6</Version>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
     <DebugType>Full</DebugType>
     <LangVersion>latest</LangVersion>
-    <IncludeSource>True</IncludeSource>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
+    <IncludeSource>True</IncludeSource>   
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eshopworld.Core" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+    <PackageReference Include="Eshopworld.Core" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

@@ -2,14 +2,13 @@
 using System.IO;
 using System.Reflection;
 using Eshopworld.DevOps;
-using Eshopworld.DevOps.Tests;
 using Eshopworld.Tests.Core;
 using Xunit;
 using FluentAssertions;
 
 // ReSharper disable once InconsistentNaming
 // ReSharper disable once CheckNamespace
-public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
+public class EswDevOpsSdkTests
 {
     [Fact, IsDev]
     public void BuildConfiguration_ReadFromCoreAppSettings()
@@ -49,20 +48,18 @@ public class EswDevOpsSdkTests : IClassFixture<TestsFixture>
         sut["PATH"].Should().NotBeNullOrEmpty();
     }
 
-
-    [Fact, IsDev]
-    public void BuildConfiguration_ReadFromKeyVault()
-    {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
-
-        sut["keyVaultItem"].Should().BeEquivalentTo("keyVaultItemValue");
-    }
-
     [Fact, IsDev]
     public void BuildConfiguraiton_TestMode()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest:true);
         sut["KeyTestAppSettings"].Should().Be("IntegrationAppSettingsValue");
+    }
+
+    [Fact, IsLayer1]
+    public void BuildConfiguration_MSIAuthenticationTest()
+    {
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI", useTest: true);
+        sut["keyVaultItem"].Should().Be("keyVaultItemValue");   
     }
 
     /// <summary>
