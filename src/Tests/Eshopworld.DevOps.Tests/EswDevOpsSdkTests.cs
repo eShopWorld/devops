@@ -104,7 +104,7 @@ public class EswDevOpsSdkTests
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy1.azureauth"), "dummy1");
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy2.azureauth"), "dummy2");
 
-        Assert.Throws<DevOpsSDKException>(() => EswDevOpsSdk.CreateAADContext());
+        Assert.Throws<DevOpsSDKException>(EswDevOpsSdk.CreateAADContext);
 
         ClearAADCredentials();
     }
