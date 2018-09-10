@@ -14,7 +14,7 @@ public class EswDevOpsSdkTests
     public void BuildConfiguration_ReadFromCoreAppSettings()
     {
         Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, "ENV1"); //process level is fine here
-        var sut = EswDevOpsSdk.BuildConfiguration();
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
         sut["KeyRootAppSettings"].Should().BeEquivalentTo("AppSettingsValue");
     }
@@ -49,7 +49,7 @@ public class EswDevOpsSdkTests
     }
 
     [Fact, IsDev]
-    public void BuildConfiguraiton_TestMode()
+    public void BuildConfiguration_TestMode()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest:true);
         sut["KeyTestAppSettings"].Should().Be("IntegrationAppSettingsValue");
@@ -58,7 +58,7 @@ public class EswDevOpsSdkTests
     [Fact, IsLayer1]
     public void BuildConfiguration_MSIAuthenticationTest()
     {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI", useTest: true);
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI", true);
         sut["keyVaultItem"].Should().Be("keyVaultItemValue");   
     }
 
@@ -104,7 +104,7 @@ public class EswDevOpsSdkTests
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy1.azureauth"), "dummy1");
         File.WriteAllText(Path.Combine(appLocalFolder, "dummy2.azureauth"), "dummy2");
 
-        Assert.Throws<DevOpsSDKException>(() => EswDevOpsSdk.CreateAADContext());
+        Assert.Throws<DevOpsSDKException>(EswDevOpsSdk.CreateAADContext);
 
         ClearAADCredentials();
     }
