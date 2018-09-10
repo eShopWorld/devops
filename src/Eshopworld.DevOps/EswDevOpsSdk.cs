@@ -1,9 +1,11 @@
-﻿namespace Eshopworld.DevOps
+﻿using System.Reflection;
+
+namespace Eshopworld.DevOps
 {
     using System;
     using System.IO;
     using System.Linq;
-    using Eshopworld.Core;
+    using Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.KeyVault;
     using System.Collections.Generic;
@@ -35,7 +37,8 @@
         /// <returns>configuration root instance</returns>
         public static IConfigurationRoot BuildConfiguration(bool useTest = false)
         {
-            return BuildConfiguration(Environment.CurrentDirectory, GetEnvironmentVariable(EnvironmentEnvVariable),
+            return BuildConfiguration(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location),
+                GetEnvironmentVariable(EnvironmentEnvVariable),
                 useTest);
         }
 
@@ -118,7 +121,16 @@
                 };
             }
 
-            return null; // even fallback found
+            return null; // even fallback failed
+        }
+
+        /// <summary>
+        /// returns name of the environment retrieved from <see cref="EnvironmentEnvVariable"/> environment variable
+        /// </summary>
+        /// <returns>name of the environment</returns>
+        public static string GetEnvironmentName()
+        {
+            return GetEnvironmentVariable(EnvironmentEnvVariable);
         }
 
         /// <summary>
@@ -154,17 +166,17 @@
             var eswLocalDataFolder = Path.Combine(appLocalData, "Eshopworld");
             var authFiles = Directory.GetFiles(eswLocalDataFolder, "*.azureauth");
 
-            if (authFiles?.Length > 1)
+            if (authFiles.Length > 1)
             {
                 throw new DevOpsSDKException($"Multiple AAD authentication file detected in {eswLocalDataFolder}. Only single file is supported.");
             }
             
-            return authFiles?.FirstOrDefault();
+            return authFiles.FirstOrDefault();
         }
 
         private static string GetSubscriptionId()
         {
-            var environmentName = Environment.GetEnvironmentVariable(EnvironmentEnvVariable);           
+            var environmentName = GetEnvironmentName();           
 
             switch (environmentName?.ToUpperInvariant())
             {
@@ -172,10 +184,10 @@
                     return "30c09ef3-7f8a-4a13-a864-776438027e9d";
                 case "DEVELOPMENT":
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //this points to TEST
-                case "PREPROD":
+                case "PREP":
                     return "be155179-5691-45d1-a5d2-3d7dde0862b1";
-                case "PRODUCTION":
-                    return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1"; //TODO: update when subscription becomes available
+                case "PROD":
+                    return "70969183-432d-45bf-9098-39433c6b2d12"; 
                 case "SAND":
                     return "b40d6034-7393-4b8a-af29-4bf00d4b0a31";
                 case "TEST":

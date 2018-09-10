@@ -10,8 +10,8 @@
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>
     <RepositoryUrl>https://github.com/eShopWorld/devops</RepositoryUrl>
     <PackageTags>configuration, devops</PackageTags>
-    <PackageReleaseNotes>MSI authentication added for KV</PackageReleaseNotes>
-    <Version>1.0.6</Version>
+    <PackageReleaseNotes>synced environment names</PackageReleaseNotes>
+    <Version>1.0.7</Version>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
     <DebugType>Full</DebugType>
