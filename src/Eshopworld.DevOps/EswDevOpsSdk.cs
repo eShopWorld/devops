@@ -19,8 +19,6 @@ namespace Eshopworld.DevOps
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
-        internal const string AADClientIdEnvVariable = "AAD_CLIENT_ID";
-        internal const string AADClientSecretEnvVariable = "AAD_CLIENT_SECRET";
 
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
@@ -93,38 +91,6 @@ namespace Eshopworld.DevOps
         }
 
         /// <summary>
-        /// create add context
-        /// </summary>
-        /// <returns></returns>
-        public static IAADContext CreateAADContext()
-        {
-            // try to locate auth file in app
-            var authFile = GetAuthFilePath();
-            if (!string.IsNullOrWhiteSpace(authFile))
-            {
-                return new AADContext {AuthFilePath = authFile};
-            }
-            
-            //fallback option - app id/secret from environment variables - resolve from process/user/machine (in that sequence)
-            var clientEnvPair = ResolveAADEnvVariables(EnvironmentVariableTarget.Process) ??
-                                ResolveAADEnvVariables(EnvironmentVariableTarget.User) ??
-                                ResolveAADEnvVariables(EnvironmentVariableTarget.Machine);
-
-            if (clientEnvPair != null)
-            {
-                return new AADContext
-                {
-                    ClientId = clientEnvPair.Item1,
-                    ClientSecret = clientEnvPair.Item2,
-                    TenantId = "3e14278f-8366-4dfd-bcc8-7e4e9d57f2c1",
-                    SubscriptionId = GetSubscriptionId()
-                };
-            }
-
-            return null; // even fallback failed
-        }
-
-        /// <summary>
         /// returns name of the environment retrieved from <see cref="EnvironmentEnvVariable"/> environment variable
         /// </summary>
         /// <returns>name of the environment</returns>
@@ -153,27 +119,6 @@ namespace Eshopworld.DevOps
 
             return new DeploymentContext {PreferredRegions = RegionFallbackMap[region]};
         }
-
-        /// <summary>
-        /// get auth file path
-        /// 
-        /// note that we only support one single file in the 
-        /// </summary>
-        /// <returns>auth file path or null</returns>
-        private static string GetAuthFilePath()
-        {
-            var appLocalData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var eswLocalDataFolder = Path.Combine(appLocalData, "Eshopworld");
-            var authFiles = Directory.GetFiles(eswLocalDataFolder, "*.azureauth");
-
-            if (authFiles.Length > 1)
-            {
-                throw new DevOpsSDKException($"Multiple AAD authentication file detected in {eswLocalDataFolder}. Only single file is supported.");
-            }
-            
-            return authFiles.FirstOrDefault();
-        }
-
         private static string GetSubscriptionId()
         {
             var environmentName = GetEnvironmentName();           
@@ -202,24 +147,6 @@ namespace Eshopworld.DevOps
             return Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process)
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User)
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
-        }
-
-        private static Tuple<string, string> ResolveAADEnvVariables(EnvironmentVariableTarget target)
-        {
-            var clientIdVal = Environment.GetEnvironmentVariable(AADClientIdEnvVariable, target);
-            if (!string.IsNullOrWhiteSpace(clientIdVal))
-            {
-                var clientSecretVal = Environment.GetEnvironmentVariable(AADClientSecretEnvVariable, target);
-                if (string.IsNullOrWhiteSpace(clientSecretVal))
-                {
-                    throw new DevOpsSDKException(
-                        $"{AADClientIdEnvVariable} variable found but no value exists for {AADClientSecretEnvVariable}");
-                }
-
-                return new Tuple<string, string>(clientIdVal, clientSecretVal);
-            }
-
-            return null;
         }
 
         private static class Regions
