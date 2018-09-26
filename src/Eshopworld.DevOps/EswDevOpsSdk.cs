@@ -119,7 +119,7 @@ namespace Eshopworld.DevOps
 
             return new DeploymentContext {PreferredRegions = RegionFallbackMap[region]};
         }
-        private static string GetSubscriptionId()
+        public static string GetSubscriptionId()
         {
             var environmentName = GetEnvironmentName();           
 
