@@ -22,10 +22,8 @@ namespace Eshopworld.DevOps
 
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
-            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS,             Regions.AustraliaSouthEast, Regions.SoutheastAsia}},
-            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.AustraliaSouthEast, Regions.WestEurope,         Regions.SoutheastAsia}},
-            {Regions.AustraliaSouthEast,  new[] {Regions.AustraliaSouthEast,  Regions.EastUS,             Regions.WestEurope,         Regions.SoutheastAsia}},
-            {Regions.SoutheastAsia,       new[] {Regions.SoutheastAsia,       Regions.AustraliaSouthEast, Regions.EastUS,             Regions.WestEurope}}
+            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS     }},
+            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.WestEurope }}
         };
 
         /// <summary>
