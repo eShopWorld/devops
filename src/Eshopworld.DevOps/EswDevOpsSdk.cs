@@ -9,6 +9,7 @@ namespace Eshopworld.DevOps
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.KeyVault;
     using System.Collections.Generic;
+    using JetBrains.Annotations;
     using Microsoft.Azure.Services.AppAuthentication;
 
     /// <summary>
@@ -71,7 +72,7 @@ namespace Eshopworld.DevOps
                 configBuilder.AddJsonFile("appsettings.TEST.json", optional: true);
                 configBuilder.AddJsonFile("appsettings.INTEGRATION.json", optional: true);
             }
-            
+
             configBuilder.AddEnvironmentVariables();
 
             var config = configBuilder.Build();
@@ -82,7 +83,7 @@ namespace Eshopworld.DevOps
                 configBuilder.AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new SectionKeyVaultManager());
-              
+
             }
 
             return configBuilder.Build();
@@ -108,20 +109,30 @@ namespace Eshopworld.DevOps
             if (string.IsNullOrWhiteSpace(region))
                 throw new InvalidOperationException(
                     $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
-            
+
             //map region to hierarchy
             if (!RegionFallbackMap.ContainsKey(region))
             {
                 throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {region}");
             }
 
-            return new DeploymentContext {PreferredRegions = RegionFallbackMap[region]};
+            return new DeploymentContext { PreferredRegions = RegionFallbackMap[region] };
         }
+
         public static string GetSubscriptionId()
         {
-            var environmentName = GetEnvironmentName();           
+            var environmentName = GetEnvironmentName();
+            if (string.IsNullOrWhiteSpace(environmentName))
+                throw new DevOpsSDKException($"No environment name set. Check {EnvironmentEnvVariable}");
 
-            switch (environmentName?.ToUpperInvariant())
+            return GetSubscriptionId(environmentName);
+        }
+
+        private static string GetSubscriptionId([NotNull] string environmentName)
+        {
+            if (environmentName == null) throw new ArgumentNullException(nameof(environmentName));
+
+            switch (environmentName.ToUpperInvariant())
             {
                 case "CI":
                     return "30c09ef3-7f8a-4a13-a864-776438027e9d";
@@ -130,13 +141,15 @@ namespace Eshopworld.DevOps
                 case "PREP":
                     return "be155179-5691-45d1-a5d2-3d7dde0862b1";
                 case "PROD":
-                    return "70969183-432d-45bf-9098-39433c6b2d12"; 
+                    return "70969183-432d-45bf-9098-39433c6b2d12";
                 case "SAND":
                     return "b40d6034-7393-4b8a-af29-4bf00d4b0a31";
                 case "TEST":
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1";
+                case "SIERRA-INTEGRATION":
+                    return "45d5ef37-02bc-4b3d-9e62-19c14f3b9603";
                 default:
-                    throw new DevOpsSDKException($"No environment name set. Check {EnvironmentEnvVariable}");
+                    throw new DevOpsSDKException($"No environment name {environmentName} is not valid.");
             }
         }
 

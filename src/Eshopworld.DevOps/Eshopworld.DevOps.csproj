@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <PackageReleaseNotes>Aligned with final PROD regions.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -14,9 +14,9 @@
     <PackageTags>configuration, devops</PackageTags>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
-    <DebugType>Full</DebugType>
+    <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
-    <IncludeSource>True</IncludeSource>   
+    <IncludeSource>True</IncludeSource>
   </PropertyGroup>
 
   <ItemGroup>
