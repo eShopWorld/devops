@@ -31,11 +31,11 @@
 
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
-            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS     }},
-            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.WestEurope }}
+            {Regions.WestEurope.ToRegionString(),          new[] {Regions.WestEurope.ToRegionString(),          Regions.EastUS.ToRegionString()     }},
+            {Regions.EastUS.ToRegionString(),              new[] {Regions.EastUS.ToRegionString(),              Regions.WestEurope.ToRegionString() }}
         };
 
-        public static string[] RegionList = new[] {Regions.WestEurope, Regions.EastUS};
+        public static Regions[] RegionList = {Regions.WestEurope, Regions.EastUS};
 
         /// <summary>
         /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string, bool)"/>
@@ -116,7 +116,7 @@
         public static DeploymentContext CreateDeploymentContext(string targetEnvironment = PROD_EnvironmentName)
         {
             if (CI_EnvironmentName.Equals(targetEnvironment, StringComparison.OrdinalIgnoreCase))
-                return new DeploymentContext {PreferredRegions = new [] {Regions.WestEurope}};
+                return new DeploymentContext {PreferredRegions = new [] {Regions.WestEurope.ToRegionString()}};
 
             var region = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 
@@ -160,13 +160,6 @@
             return Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process)
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User)
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
-        }
-
-        private static class Regions
-        {
-            internal const string WestEurope = "West Europe";
-            // ReSharper disable once InconsistentNaming
-            internal const string EastUS = "East US";           
-        }
+        }       
     }
 }
