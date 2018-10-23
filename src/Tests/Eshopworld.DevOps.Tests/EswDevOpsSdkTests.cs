@@ -81,7 +81,7 @@ public class EswDevOpsSdkTests
         [Fact, IsDev]
         public void ForCIReturnWEOnly()
         {
-            EswDevOpsSdk.CreateDeploymentContext("CI").PreferredRegions.Should().ContainInOrder(new[] {"West Europe"});
+            EswDevOpsSdk.CreateDeploymentContext("CI").PreferredRegions.Should().ContainInOrder("West Europe");
         }
     }
 

@@ -1,5 +1,8 @@
 ﻿namespace Eshopworld.DevOps
 {
+    using System.Linq;
+    using System.Reflection;
+
     /// <summary>
     /// extension methods for <see cref="T:Regions"/>
     /// </summary>
@@ -10,17 +13,9 @@
         /// </summary>
         /// <param name="it">enum instance</param>
         /// <returns>string value of the region</returns>
-        public static string ToRegionString(this Regions it)
-        {
-            switch (it)
-            {
-                case Regions.EastUS:
-                    return "East US";
-                case Regions.WestEurope:
-                    return "West Europe";
-                default:
-                    return "West Europe";
-            }
+        public static string ToRegionName(this Regions it)
+        {            
+            return GetAttributeInstance(it).ToString();
         }
 
         /// <summary>
@@ -28,17 +23,17 @@
         /// </summary>
         /// <param name="it">enum instance</param>
         /// <returns>short string value - code - of the region</returns>
-        public static string ToShortRegionString(this Regions it)
+        public static string ToRegionCode(this Regions it)
+        {         
+            return GetAttributeInstance(it).ToShortString();
+        }
+
+        private static RegionDescriptorAttribute GetAttributeInstance(Regions it)
         {
-            switch (it)
-            {
-                case Regions.EastUS:
-                    return "EUS";
-                case Regions.WestEurope:
-                    return "WE";
-                default:
-                    return "WE";
-            }
+            FieldInfo fi = it.GetType().GetField(it.ToString());
+            return (RegionDescriptorAttribute)fi.GetCustomAttributes(
+                    typeof(RegionDescriptorAttribute),
+                    false).First();
         }
     }
 }
