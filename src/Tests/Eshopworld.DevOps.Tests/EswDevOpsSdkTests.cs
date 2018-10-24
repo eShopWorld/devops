@@ -62,6 +62,26 @@ public class EswDevOpsSdkTests
         sut["keyVaultItem"].Should().Be("keyVaultItemValue");   
     }
 
+    private const string SierraIntegration = "si";
+
+    [Theory, IsDev]
+    [InlineData(EnvironmentNames.PROD, EnvironmentNames.PREP, EnvironmentNames.PREP)]
+    [InlineData(EnvironmentNames.PROD, EnvironmentNames.PROD, EnvironmentNames.PROD)]
+    [InlineData(EnvironmentNames.CI, EnvironmentNames.SAND, SierraIntegration)]
+    [InlineData(EnvironmentNames.CI, EnvironmentNames.CI, SierraIntegration)]
+    [InlineData(EnvironmentNames.PREP, EnvironmentNames.CI, SierraIntegration)]
+    public void GetDeploymentSubscriptionIdTest(string environmentName, string deploymentEnvironmentName, string resultEnvironmentSubscription)
+    {
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName);
+        var expectedSubscriptionId = resultEnvironmentSubscription == SierraIntegration
+            ? EswDevOpsSdk.SierraIntegrationSubscriptionId
+            : EswDevOpsSdk.GetSubscriptionId(deploymentEnvironmentName);
+
+        var subscriptionId = EswDevOpsSdk.GetSierraDeploymentSubscriptionId(deploymentEnvironmentName);
+
+        subscriptionId.Should().Be(expectedSubscriptionId);
+    }
+
     public class CreateDeploymentContext
     {
         [Theory, IsDev]
