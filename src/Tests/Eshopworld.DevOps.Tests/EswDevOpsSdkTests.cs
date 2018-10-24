@@ -65,10 +65,8 @@ public class EswDevOpsSdkTests
     public class CreateDeploymentContext
     {
         [Theory, IsDev]
-        [InlineData("West Europe", new[] { "West Europe", "East US", "Australia Southeast", "Southeast Asia" })]
-        [InlineData("East US", new[] { "East US", "Australia Southeast", "West Europe", "Southeast Asia" })]
-        [InlineData("Australia Southeast", new[] { "Australia Southeast", "East US", "West Europe", "Southeast Asia" })]
-        [InlineData("Southeast Asia", new[] { "Southeast Asia", "Australia Southeast", "East US", "West Europe" })]
+        [InlineData("West Europe", new[] { "West Europe", "East US" })]
+        [InlineData("East US", new[] { "East US", "West Europe" })]       
         public void ForAllProductionRegions(string regionValue, string[] expectedRegionHierarchy)
         {
             Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
@@ -78,6 +76,12 @@ public class EswDevOpsSdkTests
             Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Machine);
 
             EswDevOpsSdk.CreateDeploymentContext().PreferredRegions.Should().ContainInOrder(expectedRegionHierarchy);
+        }
+
+        [Fact, IsDev]
+        public void ForCIReturnWEOnly()
+        {
+            EswDevOpsSdk.CreateDeploymentContext("CI").PreferredRegions.Should().ContainInOrder("West Europe");
         }
     }
 

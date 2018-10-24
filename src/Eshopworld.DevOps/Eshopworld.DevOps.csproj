@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.2</Version>
-    <PackageReleaseNotes>Aligned with final PROD regions.</PackageReleaseNotes>
+    <Version>1.1.3</Version>
+    <PackageReleaseNotes>support for deployment subscriptions added. SourceLink is now supported.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
     

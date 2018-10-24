@@ -1,16 +1,13 @@
-﻿using System.Reflection;
-
-namespace Eshopworld.DevOps
+﻿namespace Eshopworld.DevOps
 {
     using System;
     using System.IO;
-    using System.Linq;
-    using Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.KeyVault;
     using System.Collections.Generic;
     using JetBrains.Annotations;
     using Microsoft.Azure.Services.AppAuthentication;
+    using System.Reflection;
 
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
@@ -21,11 +18,25 @@ namespace Eshopworld.DevOps
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
 
+        // ReSharper disable once InconsistentNaming
+        public const string CI_EnvironmentName = "CI";
+        // ReSharper disable once InconsistentNaming
+        public const string SAND_EnvironmentName = "SAND";
+        // ReSharper disable once InconsistentNaming
+        public const string TEST_EnvironmentName = "TEST";
+        // ReSharper disable once InconsistentNaming
+        public const string PREP_EnvironmentName = "PREP";
+        // ReSharper disable once InconsistentNaming
+        public const string PROD_EnvironmentName = "PROD";
+        
+
         private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
         {
-            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS     }},
-            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.WestEurope }}
+            {Regions.WestEurope.ToRegionName(),          new[] {Regions.WestEurope.ToRegionName(),          Regions.EastUS.ToRegionName() }},
+            {Regions.EastUS.ToRegionName(),              new[] {Regions.EastUS.ToRegionName(),              Regions.WestEurope.ToRegionName() }}
         };
+
+        public static Regions[] RegionList = { Regions.WestEurope, Regions.EastUS };
 
         /// <summary>
         /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string, bool)"/>
@@ -101,9 +112,13 @@ namespace Eshopworld.DevOps
         /// <summary>
         /// retrieve deployment context
         /// </summary>
+        /// <param name="targetEnvironment">name of the environment to target</param>
         /// <returns>deployment context instance</returns>
-        public static DeploymentContext CreateDeploymentContext()
+        public static DeploymentContext CreateDeploymentContext(string targetEnvironment = PROD_EnvironmentName)
         {
+            if (CI_EnvironmentName.Equals(targetEnvironment, StringComparison.OrdinalIgnoreCase))
+                return new DeploymentContext {PreferredRegions = new [] {Regions.WestEurope.ToRegionName()}};
+
             var region = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 
             if (string.IsNullOrWhiteSpace(region))
@@ -159,15 +174,6 @@ namespace Eshopworld.DevOps
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.User)
                    ?? Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Machine);
         }
-
-        private static class Regions
-        {
-            internal const string WestEurope = "West Europe";
-            // ReSharper disable once InconsistentNaming
-            internal const string EastUS = "East US";
-            // ReSharper disable once InconsistentNaming
-            internal const string AustraliaSouthEast = "Australia Southeast";
-            internal const string SoutheastAsia = "Southeast Asia";
-        }
+                
     }
 }
