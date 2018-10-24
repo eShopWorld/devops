@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.1</Version>
-    <PackageReleaseNotes>Aligned with final PROD regions.</PackageReleaseNotes>
+    <Version>1.1.2</Version>
+    <PackageReleaseNotes>added region list and alligned preferred region map to environments</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
     
