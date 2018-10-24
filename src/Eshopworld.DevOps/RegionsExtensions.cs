@@ -1,4 +1,6 @@
-﻿namespace Eshopworld.DevOps
+﻿using System;
+
+namespace Eshopworld.DevOps
 {
     using System.Linq;
     using System.Reflection;
@@ -30,6 +32,9 @@
 
         private static RegionDescriptorAttribute GetAttributeInstance(Regions it)
         {
+            if (!(typeof(Regions).IsEnumDefined(it)))
+                throw new ArgumentException("Unrecognized value");
+
             FieldInfo fi = it.GetType().GetField(it.ToString());
             return (RegionDescriptorAttribute)fi.GetCustomAttributes(
                     typeof(RegionDescriptorAttribute),
