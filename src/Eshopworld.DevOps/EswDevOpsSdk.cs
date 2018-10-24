@@ -149,7 +149,7 @@
                     return "70969183-432d-45bf-9098-39433c6b2d12";
                 case EnvironmentNames.SAND:
                     return "b40d6034-7393-4b8a-af29-4bf00d4b0a31";
-                case "DEVELOPMENT":
+                case EnvironmentNames.DEVELOPMENT:
                 case EnvironmentNames.TEST:
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1";
                 default:

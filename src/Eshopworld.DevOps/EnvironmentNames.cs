@@ -9,5 +9,6 @@ namespace Eshopworld.DevOps
         public const string TEST = "TEST";
         public const string PREP = "PREP";
         public const string PROD = "PROD";
+        public const string DEVELOPMENT = "DEVELOPMENT";
     }
 }
