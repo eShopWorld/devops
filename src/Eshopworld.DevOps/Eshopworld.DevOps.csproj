@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.3</Version>
-    <PackageReleaseNotes>support for deployment subscriptions added. SourceLink is now supported.</PackageReleaseNotes>
+    <Version>1.1.4</Version>
+    <PackageReleaseNotes>refactor environmental list to remove single list</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
     
-    <Authors>Oisin Haken</Authors>
+    <Authors>Oisin Haken, Artur Zgodzinski</Authors>
     <Company>Eshopworld</Company>
     <Copyright>Eshopworld</Copyright>
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>

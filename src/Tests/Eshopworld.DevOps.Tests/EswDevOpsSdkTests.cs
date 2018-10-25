@@ -101,6 +101,15 @@ public class EswDevOpsSdkTests
         }
     }
 
+    [Theory, IsDev]
+    [InlineData(EnvironmentNames.CI, DeploymentRegion.WestEurope, new[] {DeploymentRegion.WestEurope})]
+    [InlineData(EnvironmentNames.PROD, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(EnvironmentNames.PROD, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    public void GetRegionSequence_ForAllEnvironments(string env, DeploymentRegion source, DeploymentRegion[] expected)
+    {
+        var ret = EswDevOpsSdk.GetRegionSequence(env, source);
+        ret.Should().ContainInOrder(expected);
+    }
     public class CreateDeploymentContext
     {
         [Theory, IsDev]
@@ -120,6 +129,12 @@ public class EswDevOpsSdkTests
         [Fact, IsDev]
         public void ForCIReturnWEOnly()
         {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.Machine);
+
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, "West Europe", EnvironmentVariableTarget.Machine);
+
             EswDevOpsSdk.CreateDeploymentContext("CI").PreferredRegions.Should().ContainInOrder("West Europe");
         }
     }

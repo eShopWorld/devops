@@ -3,7 +3,7 @@
     /// <summary>
     /// regions that evolution recognizes
     /// </summary>
-    public enum Regions
+    public enum DeploymentRegion
     {
         [RegionDescriptor("West Europe", "WE")]
         WestEurope,
