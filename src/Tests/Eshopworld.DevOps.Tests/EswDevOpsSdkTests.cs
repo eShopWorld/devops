@@ -102,10 +102,10 @@ public class EswDevOpsSdkTests
     }
 
     [Theory, IsDev]
-    [InlineData(EnvironmentNames.CI, Regions.WestEurope, new[] {Regions.WestEurope})]
-    [InlineData(EnvironmentNames.PROD, Regions.WestEurope, new[] { Regions.WestEurope, Regions.EastUS })]
-    [InlineData(EnvironmentNames.PROD, Regions.EastUS, new[] { Regions.EastUS, Regions.WestEurope })]
-    public void GetRegionSequence_ForAllEnvironments(string env, Regions source, Regions[] expected)
+    [InlineData(EnvironmentNames.CI, DeploymentRegion.WestEurope, new[] {DeploymentRegion.WestEurope})]
+    [InlineData(EnvironmentNames.PROD, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(EnvironmentNames.PROD, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    public void GetRegionSequence_ForAllEnvironments(string env, DeploymentRegion source, DeploymentRegion[] expected)
     {
         var ret = EswDevOpsSdk.GetRegionSequence(env, source);
         ret.Should().ContainInOrder(expected);

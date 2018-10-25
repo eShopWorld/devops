@@ -6,12 +6,12 @@ using FluentAssertions;
 using Xunit;
 
 // ReSharper disable once CheckNamespace
-public class RegionsTests
+public class DeploymentRegionTests
 {
     [Fact, IsDev]
     public void WestEurope_StringChecks()
     {
-        Regions we = Regions.WestEurope;
+        DeploymentRegion we = DeploymentRegion.WestEurope;
         we.ToRegionName().Should().Be("West Europe");
         we.ToRegionCode().Should().Be("WE");
     }
@@ -19,7 +19,7 @@ public class RegionsTests
     [Fact, IsDev]
     public void EastUS_StringChecks()
     {
-        Regions eus = Regions.EastUS;
+        DeploymentRegion eus = DeploymentRegion.EastUS;
         eus.ToRegionName().Should().Be("East US");
         eus.ToRegionCode().Should().Be("EUS");
     }
@@ -27,7 +27,7 @@ public class RegionsTests
     [Fact, IsDev]
     public void UnrecognizedValue()
     {
-        Regions sut = (Regions) 666;
+        DeploymentRegion sut = (DeploymentRegion) 666;
         Assert.Throws<ArgumentException>(() => sut.ToRegionName());
         Assert.Throws<ArgumentException>(() => sut.ToRegionCode());
     }
@@ -35,7 +35,7 @@ public class RegionsTests
     [Fact, IsDev]
     public void EnsureAllItemsHaveDescriptor()
     {
-        foreach (var field in typeof(Regions).GetFields().Where(fi => !fi.IsSpecialName))
+        foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi => !fi.IsSpecialName))
         {
             var regionDescriptor = (RegionDescriptorAttribute) field.GetCustomAttributes(
                 typeof(RegionDescriptorAttribute),

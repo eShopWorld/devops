@@ -19,10 +19,10 @@
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
         internal const string SierraIntegrationSubscriptionId = "45d5ef37-02bc-4b3d-9e62-19c14f3b9603";
-        private static readonly Dictionary<Regions, Regions[]> RegionSequenceMap = new Dictionary<Regions, Regions[]>
+        private static readonly Dictionary<DeploymentRegion, DeploymentRegion[]> RegionSequenceMap = new Dictionary<DeploymentRegion, DeploymentRegion[]>
         {
-            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS }},
-            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.WestEurope }}
+            {DeploymentRegion.WestEurope,          new[] {DeploymentRegion.WestEurope,          DeploymentRegion.EastUS }},
+            {DeploymentRegion.EastUS,              new[] {DeploymentRegion.EastUS,              DeploymentRegion.WestEurope }}
         };
 
         /// <summary>
@@ -119,12 +119,12 @@
             return new DeploymentContext { PreferredRegions = preferredRegions };
         }
 
-        private static Regions ParseRegionFromString(string value)
+        private static DeploymentRegion ParseRegionFromString(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Null or empty value", nameof(value));
 
-            foreach (var field in typeof(Regions).GetFields().Where(fi=> !fi.IsSpecialName))
+            foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi=> !fi.IsSpecialName))
             {
                 var regionDescriptor = (RegionDescriptorAttribute) field.GetCustomAttributes(
                     typeof(RegionDescriptorAttribute),
@@ -132,7 +132,7 @@
 
                 if (regionDescriptor != null &&
                     value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return (Regions) field.GetRawConstantValue();
+                    return (DeploymentRegion) field.GetRawConstantValue();
             }
 
             throw new DevOpsSDKException($"Unrecognized region name - {value}");
@@ -146,13 +146,13 @@
         /// <returns>sequence of regions</returns>
         [NotNull]        
         // ReSharper disable once MemberCanBePrivate.Global
-        public static IEnumerable<Regions> GetRegionSequence(string environmentName, Regions masterRegion)
+        public static IEnumerable<DeploymentRegion> GetRegionSequence(string environmentName, DeploymentRegion masterRegion)
         {
             if (string.IsNullOrEmpty(environmentName))
                 throw new ArgumentException("Empty or null value", nameof(environmentName));
 
             if (EnvironmentNames.CI.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
-                return new[] { Regions.WestEurope };
+                return new[] { DeploymentRegion.WestEurope };
             
             //map region to hierarchy
             if (!RegionSequenceMap.ContainsKey(masterRegion))

@@ -8,14 +8,14 @@ namespace Eshopworld.DevOps
     /// <summary>
     /// extension methods for <see cref="T:Regions"/>
     /// </summary>
-    public static class RegionsExtensions
+    public static class DeploymentRegionExtensions
     {
         /// <summary>
         /// to (long) region string value
         /// </summary>
         /// <param name="it">enum instance</param>
         /// <returns>string value of the region</returns>
-        public static string ToRegionName(this Regions it)
+        public static string ToRegionName(this DeploymentRegion it)
         {            
             return GetAttributeInstance(it).ToString();
         }
@@ -25,14 +25,14 @@ namespace Eshopworld.DevOps
         /// </summary>
         /// <param name="it">enum instance</param>
         /// <returns>short string value - code - of the region</returns>
-        public static string ToRegionCode(this Regions it)
+        public static string ToRegionCode(this DeploymentRegion it)
         {         
             return GetAttributeInstance(it).ToShortString();
         }
 
-        private static RegionDescriptorAttribute GetAttributeInstance(Regions it)
+        private static RegionDescriptorAttribute GetAttributeInstance(DeploymentRegion it)
         {
-            if (!(typeof(Regions).IsEnumDefined(it)))
+            if (!(typeof(DeploymentRegion).IsEnumDefined(it)))
                 throw new ArgumentException("Unrecognized value");
 
             FieldInfo fi = it.GetType().GetField(it.ToString());
