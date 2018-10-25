@@ -1,6 +1,7 @@
 ﻿namespace Eshopworld.DevOps
 {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
@@ -18,13 +19,11 @@
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
         internal const string SierraIntegrationSubscriptionId = "45d5ef37-02bc-4b3d-9e62-19c14f3b9603";
-        private static readonly Dictionary<string, string[]> RegionFallbackMap = new Dictionary<string, string[]>
+        private static readonly Dictionary<Regions, Regions[]> RegionSequenceMap = new Dictionary<Regions, Regions[]>
         {
-            {Regions.WestEurope.ToRegionName(),          new[] {Regions.WestEurope.ToRegionName(),          Regions.EastUS.ToRegionName() }},
-            {Regions.EastUS.ToRegionName(),              new[] {Regions.EastUS.ToRegionName(),              Regions.WestEurope.ToRegionName() }}
+            {Regions.WestEurope,          new[] {Regions.WestEurope,          Regions.EastUS }},
+            {Regions.EastUS,              new[] {Regions.EastUS,              Regions.WestEurope }}
         };
-
-        public static Regions[] RegionList = { Regions.WestEurope, Regions.EastUS };
 
         /// <summary>
         /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string, bool)"/>
@@ -92,6 +91,7 @@
         /// returns name of the environment retrieved from <see cref="EnvironmentEnvVariable"/> environment variable
         /// </summary>
         /// <returns>name of the environment</returns>
+        // ReSharper disable once MemberCanBePrivate.Global
         public static string GetEnvironmentName()
         {
             return GetEnvironmentVariable(EnvironmentEnvVariable);
@@ -103,23 +103,64 @@
         /// <param name="targetEnvironment">name of the environment to target</param>
         /// <returns>deployment context instance</returns>
         public static DeploymentContext CreateDeploymentContext(string targetEnvironment = EnvironmentNames.PROD)
-        {
-            if (EnvironmentNames.CI.Equals(targetEnvironment, StringComparison.OrdinalIgnoreCase))
-                return new DeploymentContext { PreferredRegions = new[] { Regions.WestEurope.ToRegionName() } };
+        {        
+            var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 
-            var region = GetEnvironmentVariable(DeploymentRegionEnvVariable);
-
-            if (string.IsNullOrWhiteSpace(region))
-                throw new InvalidOperationException(
+            if (string.IsNullOrWhiteSpace(regionString))
+                throw new DevOpsSDKException(
                     $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
 
-            //map region to hierarchy
-            if (!RegionFallbackMap.ContainsKey(region))
+
+            var parsed = ParseRegionFromString(regionString);
+
+            var preferredRegions = GetRegionSequence(targetEnvironment, parsed)
+                .Select(i => i.ToRegionName());
+
+            return new DeploymentContext { PreferredRegions = preferredRegions };
+        }
+
+        private static Regions ParseRegionFromString(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Null or empty value", nameof(value));
+
+            foreach (var field in typeof(Regions).GetFields().Where(fi=> !fi.IsSpecialName))
             {
-                throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {region}");
+                var regionDescriptor = (RegionDescriptorAttribute) field.GetCustomAttributes(
+                    typeof(RegionDescriptorAttribute),
+                    false).FirstOrDefault(); //but it will be there (see tests)
+
+                if (regionDescriptor != null &&
+                    value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
+                    return (Regions) field.GetRawConstantValue();
             }
 
-            return new DeploymentContext { PreferredRegions = RegionFallbackMap[region] };
+            throw new DevOpsSDKException($"Unrecognized region name - {value}");
+        }
+
+        /// <summary>
+        /// get region sequence for a combination of environment and current region
+        /// </summary>
+        /// <param name="environmentName">name of the environment</param>
+        /// <param name="masterRegion">current region to get the sequence for</param>
+        /// <returns>sequence of regions</returns>
+        [NotNull]        
+        // ReSharper disable once MemberCanBePrivate.Global
+        public static IEnumerable<Regions> GetRegionSequence(string environmentName, Regions masterRegion)
+        {
+            if (string.IsNullOrEmpty(environmentName))
+                throw new ArgumentException("Empty or null value", nameof(environmentName));
+
+            if (EnvironmentNames.CI.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+                return new[] { Regions.WestEurope };
+            
+            //map region to hierarchy
+            if (!RegionSequenceMap.ContainsKey(masterRegion))
+            {
+                throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {masterRegion}");
+            }
+
+            return RegionSequenceMap[masterRegion];
         }
 
         /// <summary>
