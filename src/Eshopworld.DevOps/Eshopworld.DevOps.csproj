@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.2</Version>
-    <PackageReleaseNotes>added region list and alligned preferred region map to environments</PackageReleaseNotes>
+    <Version>1.1.3</Version>
+    <PackageReleaseNotes>support for deployment subscriptions added. SourceLink is now supported.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
     
@@ -14,9 +14,9 @@
     <PackageTags>configuration, devops</PackageTags>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
-    <DebugType>Full</DebugType>
+    <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
-    <IncludeSource>True</IncludeSource>   
+    <IncludeSource>True</IncludeSource>
   </PropertyGroup>
 
   <ItemGroup>
