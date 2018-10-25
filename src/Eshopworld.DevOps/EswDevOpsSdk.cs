@@ -128,10 +128,9 @@
             {
                 var regionDescriptor = (RegionDescriptorAttribute) field.GetCustomAttributes(
                     typeof(RegionDescriptorAttribute),
-                    false).FirstOrDefault(); //but it will be there (see tests)
+                    false).First();
 
-                if (regionDescriptor != null &&
-                    value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
+                if (value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
                     return (DeploymentRegion) field.GetRawConstantValue();
             }
 
