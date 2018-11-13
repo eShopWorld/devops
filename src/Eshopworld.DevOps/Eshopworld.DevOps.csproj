@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.5</Version>
-    <PackageReleaseNotes>refactor environmental list to remove single list</PackageReleaseNotes>
+    <Version>1.1.6</Version>
+    <PackageReleaseNotes>added tenant sizing</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
     
