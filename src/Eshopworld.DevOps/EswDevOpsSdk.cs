@@ -18,7 +18,7 @@
         internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
-        internal const string SierraIntegrationSubscriptionId = "0b50e185-2e2a-4e1c-bf2f-ead0b80e0b79";
+        public const string SierraIntegrationSubscriptionId = "0b50e185-2e2a-4e1c-bf2f-ead0b80e0b79";
         private static readonly Dictionary<DeploymentRegion, DeploymentRegion[]> RegionSequenceMap = new Dictionary<DeploymentRegion, DeploymentRegion[]>
         {
             {DeploymentRegion.WestEurope,          new[] {DeploymentRegion.WestEurope,          DeploymentRegion.EastUS }},
