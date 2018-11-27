@@ -66,12 +66,13 @@ public class EswDevOpsSdkTests
     private const string SierraIntegration = "si";
 
     [Theory, IsDev]
-    [InlineData(DeploymentEnvironment.CI)]
-    [InlineData(DeploymentEnvironment.PREP)]
-    public void GeEnvironmentTest(DeploymentEnvironment env)
+    [InlineData("CI", DeploymentEnvironment.CI)]
+    [InlineData("PREP", DeploymentEnvironment.Prep)]
+    [InlineData("pRep", DeploymentEnvironment.Prep)]
+    public void GeEnvironmentTest(string envValue, DeploymentEnvironment env)
     {
         var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env.ToString());
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue);
         try
         {
             var currentEnvironment = EswDevOpsSdk.GetEnvironment();
@@ -104,17 +105,17 @@ public class EswDevOpsSdkTests
     }
 
     [Theory, IsDev]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.TEST, DeploymentEnvironment.TEST)]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.SAND, DeploymentEnvironment.SAND)]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.PREP, DeploymentEnvironment.PREP)]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.PROD, DeploymentEnvironment.PROD)]
-    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.PROD, SierraIntegration)]
-    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.SAND, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Test, DeploymentEnvironment.Test)]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Sand, DeploymentEnvironment.Sand)]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Prep, DeploymentEnvironment.Prep)]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Prod, DeploymentEnvironment.Prod)]
+    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.Prod, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.Sand, SierraIntegration)]
     [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.CI, SierraIntegration)]
-    [InlineData(DeploymentEnvironment.PREP, DeploymentEnvironment.CI, SierraIntegration)]
-    [InlineData(DeploymentEnvironment.SAND, DeploymentEnvironment.PROD, SierraIntegration)]
-    [InlineData(DeploymentEnvironment.SAND, DeploymentEnvironment.SAND, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.Prep, DeploymentEnvironment.CI, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.Sand, DeploymentEnvironment.Prod, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.Sand, DeploymentEnvironment.Sand, SierraIntegration)]
     public void GetDeploymentSubscriptionIdTest(DeploymentEnvironment environmentName, DeploymentEnvironment deploymentEnvironmentName, object resultEnvironmentSubscription)
     {
         Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName.ToString());
@@ -141,8 +142,8 @@ public class EswDevOpsSdkTests
 
     [Theory, IsDev]
     [InlineData(DeploymentEnvironment.CI, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope })]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
-    [InlineData(DeploymentEnvironment.PROD, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
     public void GetRegionSequence_ForAllEnvironments(DeploymentEnvironment env, DeploymentRegion source, DeploymentRegion[] expected)
     {
         var ret = EswDevOpsSdk.GetRegionSequence(env, source);

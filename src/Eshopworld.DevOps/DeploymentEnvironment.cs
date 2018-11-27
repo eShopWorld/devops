@@ -3,10 +3,10 @@
     public enum DeploymentEnvironment
     {
         CI,
-        SAND,
-        TEST,
-        PREP,
-        PROD,
-        DEVELOPMENT,
+        Sand,
+        Test,
+        Prep,
+        Prod,
+        Development,
     }
 }

@@ -123,7 +123,7 @@
         /// </summary>
         /// <param name="targetEnvironment">the environment to target</param>
         /// <returns>deployment context instance</returns>
-        public static DeploymentContext CreateDeploymentContext(DeploymentEnvironment targetEnvironment = DeploymentEnvironment.PROD)
+        public static DeploymentContext CreateDeploymentContext(DeploymentEnvironment targetEnvironment = DeploymentEnvironment.Prod)
         {
             var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 
@@ -195,14 +195,14 @@
             {
                 case DeploymentEnvironment.CI:
                     return "30c09ef3-7f8a-4a13-a864-776438027e9d";
-                case DeploymentEnvironment.PREP:
+                case DeploymentEnvironment.Prep:
                     return "be155179-5691-45d1-a5d2-3d7dde0862b1";
-                case DeploymentEnvironment.PROD:
+                case DeploymentEnvironment.Prod:
                     return "70969183-432d-45bf-9098-39433c6b2d12";
-                case DeploymentEnvironment.SAND:
+                case DeploymentEnvironment.Sand:
                     return "b40d6034-7393-4b8a-af29-4bf00d4b0a31";
-                case DeploymentEnvironment.DEVELOPMENT:
-                case DeploymentEnvironment.TEST:
+                case DeploymentEnvironment.Development:
+                case DeploymentEnvironment.Test:
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(environment), environment, $"Environment {environment} is not valid.");
@@ -216,7 +216,7 @@
         /// <returns>Returns the subscription id.</returns>
         public static string GetSierraDeploymentSubscriptionId(DeploymentEnvironment deploymentEnvironment)
         {
-            return DeploymentEnvironment.PROD == GetEnvironment()
+            return DeploymentEnvironment.Prod == GetEnvironment()
                 ? GetSubscriptionId(deploymentEnvironment)
                 : SierraIntegrationSubscriptionId;
         }
