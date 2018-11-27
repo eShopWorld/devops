@@ -1,9 +1,9 @@
 ﻿namespace Eshopworld.DevOps
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using JetBrains.Annotations;
     using Microsoft.Azure.KeyVault;
@@ -15,7 +15,10 @@
     /// </summary>
     public static class EswDevOpsSdk
     {
-        internal const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
+        /// <summary>
+        /// The name of an environment variable which defines the environment
+        /// </summary>
+        public const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KeyVaultUrl";
         public const string SierraIntegrationSubscriptionId = "0b50e185-2e2a-4e1c-bf2f-ead0b80e0b79";
@@ -90,7 +93,7 @@
         /// <summary>
         /// returns name of the environment retrieved from <see cref="EnvironmentEnvVariable"/> environment variable
         /// </summary>
-        /// <returns>name of the environment</returns>
+        /// <returns>The name of the environment (might be empty or null).</returns>
         // ReSharper disable once MemberCanBePrivate.Global
         public static string GetEnvironmentName()
         {
@@ -98,12 +101,30 @@
         }
 
         /// <summary>
+        /// Returns the environment (as defined by <see cref="EnvironmentEnvVariable"/> environment variable)
+        /// </summary>
+        /// <returns>The environment.</returns>
+        /// <exception cref="DevOpsSDKException">The environment variable is missing or its value is invalid.</exception>
+        public static DeploymentEnvironment GetEnvironment()
+        {
+            var name = GetEnvironmentName();
+            if (Enum.TryParse<DeploymentEnvironment>(name, true, out var environment))
+            {
+                return environment;
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new DevOpsSDKException($"The environment variable {EnvironmentEnvVariable} is missing or its value is empty.");
+            throw new DevOpsSDKException($"The environment variable {EnvironmentEnvVariable} contains value '{name}' is not a valid environment name.");
+        }
+
+        /// <summary>
         /// retrieve deployment context
         /// </summary>
-        /// <param name="targetEnvironment">name of the environment to target</param>
+        /// <param name="targetEnvironment">the environment to target</param>
         /// <returns>deployment context instance</returns>
-        public static DeploymentContext CreateDeploymentContext(string targetEnvironment = EnvironmentNames.PROD)
-        {        
+        public static DeploymentContext CreateDeploymentContext(DeploymentEnvironment targetEnvironment = DeploymentEnvironment.PROD)
+        {
             var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 
             if (string.IsNullOrWhiteSpace(regionString))
@@ -124,14 +145,14 @@
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Null or empty value", nameof(value));
 
-            foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi=> !fi.IsSpecialName))
+            foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi => !fi.IsSpecialName))
             {
-                var regionDescriptor = (RegionDescriptorAttribute) field.GetCustomAttributes(
+                var regionDescriptor = (RegionDescriptorAttribute)field.GetCustomAttributes(
                     typeof(RegionDescriptorAttribute),
                     false).First();
 
                 if (value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return (DeploymentRegion) field.GetRawConstantValue();
+                    return (DeploymentRegion)field.GetRawConstantValue();
             }
 
             throw new DevOpsSDKException($"Unrecognized region name - {value}");
@@ -140,19 +161,16 @@
         /// <summary>
         /// get region sequence for a combination of environment and current region
         /// </summary>
-        /// <param name="environmentName">name of the environment</param>
+        /// <param name="environment">the environment</param>
         /// <param name="masterRegion">current region to get the sequence for</param>
         /// <returns>sequence of regions</returns>
-        [NotNull]        
+        [NotNull]
         // ReSharper disable once MemberCanBePrivate.Global
-        public static IEnumerable<DeploymentRegion> GetRegionSequence(string environmentName, DeploymentRegion masterRegion)
+        public static IEnumerable<DeploymentRegion> GetRegionSequence(DeploymentEnvironment environment, DeploymentRegion masterRegion)
         {
-            if (string.IsNullOrEmpty(environmentName))
-                throw new ArgumentException("Empty or null value", nameof(environmentName));
-
-            if (EnvironmentNames.CI.Equals(environmentName, StringComparison.OrdinalIgnoreCase))
+            if (environment == DeploymentEnvironment.CI)
                 return new[] { DeploymentRegion.WestEurope };
-            
+
             //map region to hierarchy
             if (!RegionSequenceMap.ContainsKey(masterRegion))
             {
@@ -168,50 +186,38 @@
         /// <returns>Returns the subscription id.</returns>
         public static string GetSubscriptionId()
         {
-            var environmentName = GetEnvironmentName();
-            if (string.IsNullOrWhiteSpace(environmentName))
-                throw new DevOpsSDKException($"No environment name set. Check {EnvironmentEnvVariable}");
-
-            return GetSubscriptionId(environmentName);
+            return GetSubscriptionId(GetEnvironment());
         }
 
-        internal static string GetSubscriptionId([NotNull] string environmentName)
+        internal static string GetSubscriptionId(DeploymentEnvironment environment)
         {
-            if (environmentName == null) throw new ArgumentNullException(nameof(environmentName));
-
-            switch (environmentName.ToUpperInvariant())
+            switch (environment)
             {
-                case EnvironmentNames.CI:
+                case DeploymentEnvironment.CI:
                     return "30c09ef3-7f8a-4a13-a864-776438027e9d";
-                case EnvironmentNames.PREP:
+                case DeploymentEnvironment.PREP:
                     return "be155179-5691-45d1-a5d2-3d7dde0862b1";
-                case EnvironmentNames.PROD:
+                case DeploymentEnvironment.PROD:
                     return "70969183-432d-45bf-9098-39433c6b2d12";
-                case EnvironmentNames.SAND:
+                case DeploymentEnvironment.SAND:
                     return "b40d6034-7393-4b8a-af29-4bf00d4b0a31";
-                case EnvironmentNames.DEVELOPMENT:
-                case EnvironmentNames.TEST:
+                case DeploymentEnvironment.DEVELOPMENT:
+                case DeploymentEnvironment.TEST:
                     return "49c77085-e8c5-4ad2-8114-1d4e71a64cc1";
                 default:
-                    throw new DevOpsSDKException($"Environment name {environmentName} is not valid.");
+                    throw new ArgumentOutOfRangeException(nameof(environment), environment, $"Environment {environment} is not valid.");
             }
         }
 
         /// <summary>
         /// Gets the subscription id assigned to the environment which is deployed.
         /// </summary>
-        /// <param name="deploymentEnvironmentName">The name of environment to which deployment is performed.</param>
+        /// <param name="deploymentEnvironment">The environment to which deployment is performed.</param>
         /// <returns>Returns the subscription id.</returns>
-        public static string GetSierraDeploymentSubscriptionId([NotNull] string deploymentEnvironmentName)
+        public static string GetSierraDeploymentSubscriptionId(DeploymentEnvironment deploymentEnvironment)
         {
-            if (deploymentEnvironmentName == null) throw new ArgumentNullException(nameof(deploymentEnvironmentName));
-
-            var environmentName = GetEnvironmentName();
-            if (string.IsNullOrWhiteSpace(environmentName))
-                throw new DevOpsSDKException($"No environment name set. Check {EnvironmentEnvVariable}");
-
-            return EnvironmentNames.PROD.Equals(environmentName, StringComparison.OrdinalIgnoreCase)
-                ? GetSubscriptionId(deploymentEnvironmentName)
+            return DeploymentEnvironment.PROD == GetEnvironment()
+                ? GetSubscriptionId(deploymentEnvironment)
                 : SierraIntegrationSubscriptionId;
         }
 

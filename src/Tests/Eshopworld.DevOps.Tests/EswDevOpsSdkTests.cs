@@ -66,21 +66,59 @@ public class EswDevOpsSdkTests
     private const string SierraIntegration = "si";
 
     [Theory, IsDev]
-    [InlineData(EnvironmentNames.PROD, EnvironmentNames.TEST, EnvironmentNames.TEST)]
-    [InlineData(EnvironmentNames.PROD, EnvironmentNames.CI, EnvironmentNames.CI)]
-    [InlineData(EnvironmentNames.PROD, EnvironmentNames.SAND, EnvironmentNames.SAND)]
-    [InlineData(EnvironmentNames.PROD, EnvironmentNames.PREP, EnvironmentNames.PREP)]
-    [InlineData(EnvironmentNames.PROD, EnvironmentNames.PROD, EnvironmentNames.PROD)]
-    [InlineData(EnvironmentNames.CI, EnvironmentNames.PROD, SierraIntegration)]
-    [InlineData(EnvironmentNames.CI, EnvironmentNames.SAND, SierraIntegration)]
-    [InlineData(EnvironmentNames.CI, EnvironmentNames.CI, SierraIntegration)]
-    [InlineData(EnvironmentNames.PREP, EnvironmentNames.CI, SierraIntegration)]
-    [InlineData(EnvironmentNames.SAND, EnvironmentNames.PROD, SierraIntegration)]
-    [InlineData(EnvironmentNames.SAND, EnvironmentNames.SAND, SierraIntegration)]
-    public void GetDeploymentSubscriptionIdTest(string environmentName, string deploymentEnvironmentName, string resultEnvironmentSubscription)
+    [InlineData(DeploymentEnvironment.CI)]
+    [InlineData(DeploymentEnvironment.PREP)]
+    public void GeEnvironmentTest(DeploymentEnvironment env)
     {
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName);
-        var expectedSubscriptionId = resultEnvironmentSubscription == SierraIntegration
+        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env.ToString());
+        try
+        {
+            var currentEnvironment = EswDevOpsSdk.GetEnvironment();
+            currentEnvironment.Should().Be(env);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv);
+        }
+    }
+
+    [Theory, IsDev]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("PR")]
+    public void GeEnvironmentFailsTest(string env)
+    {
+        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env);
+        try
+        {
+            Action func = () => EswDevOpsSdk.GetEnvironment();
+            func.Should().Throw<DevOpsSDKException>();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv);
+        }
+    }
+
+    [Theory, IsDev]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.TEST, DeploymentEnvironment.TEST)]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.SAND, DeploymentEnvironment.SAND)]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.PREP, DeploymentEnvironment.PREP)]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentEnvironment.PROD, DeploymentEnvironment.PROD)]
+    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.PROD, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.SAND, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.CI, DeploymentEnvironment.CI, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.PREP, DeploymentEnvironment.CI, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.SAND, DeploymentEnvironment.PROD, SierraIntegration)]
+    [InlineData(DeploymentEnvironment.SAND, DeploymentEnvironment.SAND, SierraIntegration)]
+    public void GetDeploymentSubscriptionIdTest(DeploymentEnvironment environmentName, DeploymentEnvironment deploymentEnvironmentName, object resultEnvironmentSubscription)
+    {
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName.ToString());
+        var expectedSubscriptionId = resultEnvironmentSubscription as string == SierraIntegration
             ? EswDevOpsSdk.SierraIntegrationSubscriptionId
             : EswDevOpsSdk.GetSubscriptionId(deploymentEnvironmentName);
 
@@ -92,7 +130,7 @@ public class EswDevOpsSdkTests
     [Fact, IsDev]
     public void GetSubscriptionId_works_for_known_environments()
     {
-        var environmentNames = typeof(EnvironmentNames).GetFields().Select(x => (string)x.GetValue(null));
+        var environmentNames = typeof(DeploymentEnvironment).GetFields().Select(x => (string)x.GetValue(null));
         foreach (var environmentName in environmentNames)
         {
             Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName);
@@ -102,10 +140,10 @@ public class EswDevOpsSdkTests
     }
 
     [Theory, IsDev]
-    [InlineData(EnvironmentNames.CI, DeploymentRegion.WestEurope, new[] {DeploymentRegion.WestEurope})]
-    [InlineData(EnvironmentNames.PROD, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
-    [InlineData(EnvironmentNames.PROD, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
-    public void GetRegionSequence_ForAllEnvironments(string env, DeploymentRegion source, DeploymentRegion[] expected)
+    [InlineData(DeploymentEnvironment.CI, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope })]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(DeploymentEnvironment.PROD, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    public void GetRegionSequence_ForAllEnvironments(DeploymentEnvironment env, DeploymentRegion source, DeploymentRegion[] expected)
     {
         var ret = EswDevOpsSdk.GetRegionSequence(env, source);
         ret.Should().ContainInOrder(expected);
@@ -135,7 +173,7 @@ public class EswDevOpsSdkTests
 
             Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, "West Europe", EnvironmentVariableTarget.Machine);
 
-            EswDevOpsSdk.CreateDeploymentContext("CI").PreferredRegions.Should().ContainInOrder("West Europe");
+            EswDevOpsSdk.CreateDeploymentContext(DeploymentEnvironment.CI).PreferredRegions.Should().ContainInOrder("West Europe");
         }
     }
 
