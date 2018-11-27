@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.6</Version>
+    <Version>2.0.0</Version>
     <PackageReleaseNotes>added tenant sizing</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -14,7 +14,8 @@
     <PackageTags>configuration, devops</PackageTags>
     <PackageLicenseUrl>https://github.com/eShopWorld/devops/blob/master/LICENSE</PackageLicenseUrl>
     <Description>eShopWorld DevOps SDK artefacts</Description>
-    <DebugType>portable</DebugType>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
     <LangVersion>latest</LangVersion>
     <IncludeSource>True</IncludeSource>
   </PropertyGroup>

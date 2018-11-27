@@ -3,7 +3,7 @@
     /// <summary>
     /// tenant sizing, each tenant will be classified as one of these recognized sizes
     /// </summary>
-    public enum TenantSizeEnum
+    public enum TenantSize
     {
         Small,
         Large,
