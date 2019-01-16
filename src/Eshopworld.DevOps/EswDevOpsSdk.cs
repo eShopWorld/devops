@@ -1,4 +1,6 @@
-﻿namespace Eshopworld.DevOps
+﻿using Microsoft.Extensions.Configuration.AzureKeyVault;
+
+namespace Eshopworld.DevOps
 {
     using System;
     using System.Collections.Generic;
@@ -83,7 +85,7 @@
             {
                 configBuilder.AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new SectionKeyVaultManager());
+                    new DefaultKeyVaultSecretManager());
 
             }
 
@@ -140,7 +142,12 @@
             return new DeploymentContext { PreferredRegions = preferredRegions };
         }
 
-        private static DeploymentRegion ParseRegionFromString(string value)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static DeploymentRegion ParseRegionFromString(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Null or empty value", nameof(value));
