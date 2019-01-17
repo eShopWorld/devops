@@ -1,4 +1,6 @@
-﻿namespace Eshopworld.DevOps
+﻿using Microsoft.Extensions.Configuration.AzureKeyVault;
+
+namespace Eshopworld.DevOps
 {
     using System;
     using System.Collections.Generic;
@@ -83,7 +85,7 @@
             {
                 configBuilder.AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new SectionKeyVaultManager());
+                    new DefaultKeyVaultSecretManager());
 
             }
 
