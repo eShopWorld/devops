@@ -141,7 +141,7 @@ namespace Eshopworld.DevOps
 
             return new DeploymentContext { PreferredRegions = preferredRegions };
         }
-       
+
         private static DeploymentRegion ParseRegionFromString(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
