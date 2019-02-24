@@ -11,17 +11,17 @@ using Xunit;
 // ReSharper disable once CheckNamespace
 public class EswDevOpsSdkTests
 {
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void BuildConfiguration_ReadFromCoreAppSettings()
     {
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, "ENV1"); //process level is fine here
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, "ENV1", EnvironmentVariableTarget.Process); //process level is fine here
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
 
         sut["KeyRootAppSettings"].Should().BeEquivalentTo("AppSettingsValue");
     }
 
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void BuildConfiguration_NonTestMode()
 
     {
@@ -31,7 +31,7 @@ public class EswDevOpsSdkTests
     }
 
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void BuildConfiguration_ReadFromEnvironmentalAppSettings()
 
     {
@@ -41,7 +41,7 @@ public class EswDevOpsSdkTests
     }
 
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void BuildConfiguration_ReadFromEnvironmentalVariable()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
@@ -58,14 +58,14 @@ public class EswDevOpsSdkTests
 
     private const string SierraIntegration = "si";
 
-    [Theory, IsDev]
+    [Theory, IsUnit]
     [InlineData("CI", DeploymentEnvironment.CI)]
     [InlineData("PREP", DeploymentEnvironment.Prep)]
     [InlineData("pRep", DeploymentEnvironment.Prep)]
     public void GeEnvironmentTest(string envValue, DeploymentEnvironment env)
     {
         var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue, EnvironmentVariableTarget.Process);
         try
         {
             var currentEnvironment = EswDevOpsSdk.GetEnvironment();
@@ -73,11 +73,11 @@ public class EswDevOpsSdkTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
         }
     }
 
-    [Theory, IsDev]
+    [Theory, IsUnit]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
@@ -85,7 +85,7 @@ public class EswDevOpsSdkTests
     public void GeEnvironmentFailsTest(string env)
     {
         var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env, EnvironmentVariableTarget.Process);
         try
         {
             Action func = () => EswDevOpsSdk.GetEnvironment();
@@ -93,11 +93,11 @@ public class EswDevOpsSdkTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
         }
     }
 
-    [Theory, IsDev]
+    [Theory, IsUnit]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Test, DeploymentEnvironment.Test)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Sand, DeploymentEnvironment.Sand)]
@@ -111,7 +111,7 @@ public class EswDevOpsSdkTests
     [InlineData(DeploymentEnvironment.Sand, DeploymentEnvironment.Sand, SierraIntegration)]
     public void GetDeploymentSubscriptionIdTest(DeploymentEnvironment environmentName, DeploymentEnvironment deploymentEnvironmentName, object resultEnvironmentSubscription)
     {
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName.ToString());
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName.ToString(), EnvironmentVariableTarget.Process);
         var expectedSubscriptionId = resultEnvironmentSubscription as string == SierraIntegration
             ? EswDevOpsSdk.SierraIntegrationSubscriptionId
             : EswDevOpsSdk.GetSubscriptionId(deploymentEnvironmentName);
@@ -121,19 +121,19 @@ public class EswDevOpsSdkTests
         subscriptionId.Should().Be(expectedSubscriptionId);
     }
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void GetSubscriptionId_works_for_known_environments()
     {
         var environmentNames = Enum.GetNames(typeof(DeploymentEnvironment));
         foreach (var environmentName in environmentNames)
         {
-            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName, EnvironmentVariableTarget.Process);
             var subscriptionId = EswDevOpsSdk.GetSubscriptionId();
             subscriptionId.Should().NotBeNullOrEmpty();
         }
     }
 
-    [Theory, IsDev]
+    [Theory, IsUnit]
     [InlineData(DeploymentEnvironment.CI, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope })]
     [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
     [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]

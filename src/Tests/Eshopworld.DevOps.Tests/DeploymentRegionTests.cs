@@ -8,7 +8,7 @@ using Xunit;
 // ReSharper disable once CheckNamespace
 public class DeploymentRegionTests
 {
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void WestEurope_StringChecks()
     {
         DeploymentRegion we = DeploymentRegion.WestEurope;
@@ -16,7 +16,7 @@ public class DeploymentRegionTests
         we.ToRegionCode().Should().Be("WE");
     }
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void EastUS_StringChecks()
     {
         DeploymentRegion eus = DeploymentRegion.EastUS;
@@ -24,7 +24,7 @@ public class DeploymentRegionTests
         eus.ToRegionCode().Should().Be("EUS");
     }
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void UnrecognizedValue()
     {
         DeploymentRegion sut = (DeploymentRegion) 666;
@@ -32,7 +32,7 @@ public class DeploymentRegionTests
         Assert.Throws<ArgumentException>(() => sut.ToRegionCode());
     }
 
-    [Fact, IsDev]
+    [Fact, IsUnit]
     public void EnsureAllItemsHaveDescriptor()
     {
         foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi => !fi.IsSpecialName))
