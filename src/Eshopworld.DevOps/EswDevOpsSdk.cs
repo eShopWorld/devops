@@ -1,17 +1,16 @@
-﻿using Microsoft.Extensions.Configuration.AzureKeyVault;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using JetBrains.Annotations;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace Eshopworld.DevOps
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using JetBrains.Annotations;
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.Services.AppAuthentication;
-    using Microsoft.Extensions.Configuration;
-
     /// <summary>
     /// Top level pool of SDK related functionality offered as part of platform
     /// </summary>
@@ -21,9 +20,11 @@ namespace Eshopworld.DevOps
         /// The name of an environment variable which defines the environment
         /// </summary>
         public const string EnvironmentEnvVariable = "ASPNETCORE_ENVIRONMENT";
-        internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
-        internal const string KeyVaultUrlKey = "KeyVaultUrl";
         public const string SierraIntegrationSubscriptionId = "0b50e185-2e2a-4e1c-bf2f-ead0b80e0b79";
+
+        internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
+        internal const string KeyVaultUrlKey = "KEYVAULT_URL";
+
         private static readonly Dictionary<DeploymentRegion, DeploymentRegion[]> RegionSequenceMap = new Dictionary<DeploymentRegion, DeploymentRegion[]>
         {
             {DeploymentRegion.WestEurope,          new[] {DeploymentRegion.WestEurope,          DeploymentRegion.EastUS }},
@@ -31,15 +32,13 @@ namespace Eshopworld.DevOps
         };
 
         /// <summary>
-        /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string, bool)"/>
+        /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string)"/>
         /// </summary>
-        /// <param name="useTest">true to force a .INTEGRATION.json optional configuration load, false otherwise.</param>
         /// <returns>configuration root instance</returns>
-        public static IConfigurationRoot BuildConfiguration(bool useTest = false)
+        public static IConfigurationRoot BuildConfiguration()
         {
             return BuildConfiguration(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location),
-                GetEnvironmentVariable(EnvironmentEnvVariable),
-                useTest);
+                GetEnvironmentVariable(EnvironmentEnvVariable));
         }
 
         /// <summary>
@@ -50,7 +49,6 @@ namespace Eshopworld.DevOps
         /// </summary>
         /// <param name="basePath">The base path to use when looking for the JSON settings files.</param>
         /// <param name="environment">The name of the environment to scan for environmental configuration, null to skip.</param>
-        /// <param name="useTest">true to force a .INTEGRATION.json optional configuration load, false otherwise.</param>
         /// <returns>The configuration root after building the builder.</returns>
         /// <remarks>
         /// The configuration flow is:
@@ -60,20 +58,14 @@ namespace Eshopworld.DevOps
         ///     #4 Try to get the Vault setting from configuration
         ///     #5 If Vault details are present, load configuration from the target vault
         /// </remarks>
-        public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null, bool useTest = false)
+        public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null)
         {
             var configBuilder = new ConfigurationBuilder().SetBasePath(basePath)
-                                                          .AddJsonFile("appsettings.json");
+                                                          .AddJsonFile("appsettings.json", optional: true);
 
             if (!string.IsNullOrEmpty(environment))
             {
-                configBuilder.AddJsonFile($"appsettings.{environment}.json");
-            }
-
-            if (useTest)
-            {
-                configBuilder.AddJsonFile("appsettings.TEST.json", optional: true);
-                configBuilder.AddJsonFile("appsettings.INTEGRATION.json", optional: true);
+                configBuilder.AddJsonFile($"appsettings.{environment}.json", optional: true);
             }
 
             configBuilder.AddEnvironmentVariables();
@@ -86,7 +78,6 @@ namespace Eshopworld.DevOps
                 configBuilder.AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager());
-
             }
 
             return configBuilder.Build();
@@ -133,7 +124,6 @@ namespace Eshopworld.DevOps
                 throw new DevOpsSDKException(
                     $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
 
-
             var parsed = ParseRegionFromString(regionString);
 
             var preferredRegions = GetRegionSequence(targetEnvironment, parsed)
@@ -161,7 +151,7 @@ namespace Eshopworld.DevOps
         }
 
         /// <summary>
-        /// get region sequence for a combination of environment and current region
+        /// Get region sequence for a combination of environment and current region
         /// </summary>
         /// <param name="environment">the environment</param>
         /// <param name="masterRegion">current region to get the sequence for</param>

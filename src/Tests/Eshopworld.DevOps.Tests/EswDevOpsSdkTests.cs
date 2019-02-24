@@ -49,17 +49,10 @@ public class EswDevOpsSdkTests
         sut["PATH"].Should().NotBeNullOrEmpty();
     }
 
-    [Fact, IsDev]
-    public void BuildConfiguration_TestMode()
-    {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, useTest: true);
-        sut["KeyTestAppSettings"].Should().Be("IntegrationAppSettingsValue");
-    }
-
     [Fact, IsLayer1]
     public void BuildConfiguration_MSIAuthenticationTest()
     {
-        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI", true);
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "CI");
         sut["keyVaultItem"].Should().Be("keyVaultItemValue");
     }
 
@@ -131,7 +124,7 @@ public class EswDevOpsSdkTests
     [Fact, IsDev]
     public void GetSubscriptionId_works_for_known_environments()
     {
-        var environmentNames = typeof(DeploymentEnvironment).GetFields().Select(x => (string)x.GetValue(null));
+        var environmentNames = Enum.GetNames(typeof(DeploymentEnvironment));
         foreach (var environmentName in environmentNames)
         {
             Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, environmentName);
