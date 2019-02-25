@@ -11,7 +11,7 @@ using Xunit;
 // ReSharper disable once CheckNamespace
 public class EswDevOpsSdkTests
 {
-    [Fact, IsUnit]
+    [Fact, IsLayer0]
     public void BuildConfiguration_ReadFromCoreAppSettings()
     {
         Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, "ENV1", EnvironmentVariableTarget.Process); //process level is fine here
@@ -21,7 +21,7 @@ public class EswDevOpsSdkTests
     }
 
 
-    [Fact, IsUnit]
+    [Fact, IsLayer0]
     public void BuildConfiguration_NonTestMode()
 
     {
@@ -31,7 +31,7 @@ public class EswDevOpsSdkTests
     }
 
 
-    [Fact, IsUnit]
+    [Fact, IsLayer0]
     public void BuildConfiguration_ReadFromEnvironmentalAppSettings()
 
     {
@@ -41,7 +41,7 @@ public class EswDevOpsSdkTests
     }
 
 
-    [Fact, IsUnit]
+    [Fact, IsLayer0]
     public void BuildConfiguration_ReadFromEnvironmentalVariable()
     {
         var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory);
@@ -58,7 +58,7 @@ public class EswDevOpsSdkTests
 
     private const string SierraIntegration = "si";
 
-    [Theory, IsUnit]
+    [Theory, IsLayer0]
     [InlineData("CI", DeploymentEnvironment.CI)]
     [InlineData("PREP", DeploymentEnvironment.Prep)]
     [InlineData("pRep", DeploymentEnvironment.Prep)]
@@ -77,7 +77,7 @@ public class EswDevOpsSdkTests
         }
     }
 
-    [Theory, IsUnit]
+    [Theory, IsLayer0]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
@@ -97,7 +97,7 @@ public class EswDevOpsSdkTests
         }
     }
 
-    [Theory, IsUnit]
+    [Theory, IsLayer0]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Test, DeploymentEnvironment.Test)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Sand, DeploymentEnvironment.Sand)]
@@ -121,7 +121,7 @@ public class EswDevOpsSdkTests
         subscriptionId.Should().Be(expectedSubscriptionId);
     }
 
-    [Fact, IsUnit]
+    [Fact, IsLayer0]
     public void GetSubscriptionId_works_for_known_environments()
     {
         var environmentNames = Enum.GetNames(typeof(DeploymentEnvironment));
@@ -133,7 +133,7 @@ public class EswDevOpsSdkTests
         }
     }
 
-    [Theory, IsUnit]
+    [Theory, IsLayer0]
     [InlineData(DeploymentEnvironment.CI, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope })]
     [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
     [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
