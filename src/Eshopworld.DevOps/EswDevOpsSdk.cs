@@ -44,8 +44,6 @@ namespace Eshopworld.DevOps
         /// <summary>
         /// Builds the <see cref="ConfigurationBuilder"/> and retrieves all main config sections from the resulting
         ///     configuration.
-        /// Under a test run, the release definition will rename the environment ex: appsettings.CI.json file for the target environment (CI)
-        ///     to appsettings.TEST.json, so useTest will effectively load the right file.
         /// </summary>
         /// <param name="basePath">The base path to use when looking for the JSON settings files.</param>
         /// <param name="environment">The name of the environment to scan for environmental configuration, null to skip.</param>
@@ -54,9 +52,9 @@ namespace Eshopworld.DevOps
         /// The configuration flow is:
         ///     #1 Get the default appsettings.json
         ///     #2 Get the environmental appsettings.{ENV}.json
-        ///     #3 If it's a test, load the [optional] appsettings.TEST.json
+        ///     #3 Get the environment variables - Usually the KeyVault URI is injected here
         ///     #4 Try to get the Vault setting from configuration
-        ///     #5 If Vault details are present, load configuration from the target vault
+        ///     #5 If Vault details are present, load configuration from the target vault using managed identities
         /// </remarks>
         public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null)
         {
