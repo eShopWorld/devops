@@ -9,6 +9,8 @@
         WestEurope,
         // ReSharper disable once InconsistentNaming
         [RegionDescriptor("East US", "EUS")]
-        EastUS
+        EastUS,
+        [RegionDescriptor("Southeast Asia", "SA")]
+        SoutheastAsia
     }
 }
