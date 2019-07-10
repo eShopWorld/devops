@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Eshopworld.DevOps;
 using Eshopworld.Tests.Core;
@@ -135,18 +134,24 @@ public class EswDevOpsSdkTests
 
     [Theory, IsLayer0]
     [InlineData(DeploymentEnvironment.CI, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope })]
-    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
-    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS, DeploymentRegion.SoutheastAsia })]
+    [InlineData(DeploymentEnvironment.Prod, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope, DeploymentRegion.SoutheastAsia })]
+    [InlineData(DeploymentEnvironment.Sand, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(DeploymentEnvironment.Sand, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    [InlineData(DeploymentEnvironment.Test, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(DeploymentEnvironment.Test, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
+    [InlineData(DeploymentEnvironment.Development, DeploymentRegion.WestEurope, new[] { DeploymentRegion.WestEurope, DeploymentRegion.EastUS })]
+    [InlineData(DeploymentEnvironment.Development, DeploymentRegion.EastUS, new[] { DeploymentRegion.EastUS, DeploymentRegion.WestEurope })]
     public void GetRegionSequence_ForAllEnvironments(DeploymentEnvironment env, DeploymentRegion source, DeploymentRegion[] expected)
     {
         var ret = EswDevOpsSdk.GetRegionSequence(env, source);
-        ret.Should().ContainInOrder(expected);
+        ret.Should().ContainInOrder(expected).And.HaveCount(expected.Length);
     }
     public class CreateDeploymentContext
     {
         [Theory, IsDev]
-        [InlineData("West Europe", new[] { "West Europe", "East US" })]
-        [InlineData("East US", new[] { "East US", "West Europe" })]
+        [InlineData("West Europe", new[] { "West Europe", "East US", "Southeast Asia" })]
+        [InlineData("East US", new[] { "East US", "West Europe", "Southeast Asia" })]
         public void ForAllProductionRegions(string regionValue, string[] expectedRegionHierarchy)
         {
             Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, null, EnvironmentVariableTarget.User);
@@ -178,9 +183,9 @@ public class EswDevOpsSdkTests
     {
         get
         {
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            var codeBase = Assembly.GetExecutingAssembly().CodeBase;
             var uri = new UriBuilder(codeBase);
-            string path = Uri.UnescapeDataString(uri.Path);
+            var path = Uri.UnescapeDataString(uri.Path);
             return Path.GetDirectoryName(path);
         }
     }
