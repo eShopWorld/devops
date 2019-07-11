@@ -179,7 +179,11 @@ namespace Eshopworld.DevOps
                 throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {masterRegion}");
             }
 
-            return RegionSequenceMap[masterRegion];
+            var map = RegionSequenceMap[masterRegion];
+            return (environment == DeploymentEnvironment.Sand || environment == DeploymentEnvironment.Test ||
+                    environment == DeploymentEnvironment.Development)
+                ? map.Where(r => r != DeploymentRegion.SoutheastAsia)
+                : map;
         }
 
         /// <summary>
