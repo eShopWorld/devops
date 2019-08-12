@@ -78,26 +78,6 @@ public class EswDevOpsSdkTests
     }
 
     [Theory, IsLayer0]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("PR")]
-    public void GeEnvironmentFailsTest(string env)
-    {
-        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env, EnvironmentVariableTarget.Process);
-        try
-        {
-            Action func = () => EswDevOpsSdk.GetEnvironment();
-            func.Should().Throw<DevOpsSDKException>();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
-        }
-    }
-
-    [Theory, IsLayer0]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Test, DeploymentEnvironment.Test)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Sand, DeploymentEnvironment.Sand)]

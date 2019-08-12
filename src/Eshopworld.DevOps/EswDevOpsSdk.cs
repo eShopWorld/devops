@@ -58,27 +58,35 @@ namespace Eshopworld.DevOps
         /// </remarks>
         public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null)
         {
-            var configBuilder = new ConfigurationBuilder().SetBasePath(basePath)
-                                                          .AddJsonFile("appsettings.json", optional: true);
-
-            if (!string.IsNullOrEmpty(environment))
-            {
-                configBuilder.AddJsonFile($"appsettings.{environment}.json", optional: true);
-            }
-
-            configBuilder.AddEnvironmentVariables();
+            var configBuilder = new ConfigurationBuilder();
+            AddStandardProviders(configBuilder);
 
             var config = configBuilder.Build();
             var vaultUrl = config[KeyVaultUrlKey];
 
             if (!string.IsNullOrEmpty(vaultUrl))
             {
+                configBuilder = new ConfigurationBuilder();
                 configBuilder.AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager());
+                AddStandardProviders(configBuilder);
             }
 
             return configBuilder.Build();
+
+            void AddStandardProviders(IConfigurationBuilder builder)
+            {
+                builder.SetBasePath(basePath)
+                    .AddJsonFile("appsettings.json", optional: true);
+
+                if (!string.IsNullOrEmpty(environment))
+                {
+                    configBuilder.AddJsonFile($"appsettings.{environment}.json", optional: true);
+                }
+
+                configBuilder.AddEnvironmentVariables();
+            }
         }
 
         /// <summary>
