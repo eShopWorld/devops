@@ -6,7 +6,7 @@ namespace Eshopworld.DevOps
     using System.Reflection;
 
     /// <summary>
-    /// extension methods for <see cref="T:Regions"/>
+    /// extension methods for <see cref="Regions"/>
     /// </summary>
     public static class DeploymentRegionExtensions
     {

@@ -5,6 +5,7 @@
     /// <summary>
     /// attribute to capture region string name and the code
     /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
     public class RegionDescriptorAttribute : Attribute
     {
         private readonly string _fullName;
