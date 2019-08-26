@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <Version>4.2.0</Version>
+    <PackageReleaseNotes>
       Changed the order of configuration providers. Now the order is: configuration files, Key Vault secrets, environment variables (the later overwrites the former).
     </PackageReleaseNotes>
 
