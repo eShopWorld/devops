@@ -25,11 +25,22 @@ namespace Eshopworld.DevOps
         internal const string DeploymentRegionEnvVariable = "DEPLOYMENT_REGION";
         internal const string KeyVaultUrlKey = "KEYVAULT_URL";
 
-        private static readonly Dictionary<DeploymentRegion, DeploymentRegion[]> RegionSequenceMap = new Dictionary<DeploymentRegion, DeploymentRegion[]>
-        {
-            {DeploymentRegion.WestEurope,          new[] {DeploymentRegion.WestEurope,          DeploymentRegion.EastUS }},
-            {DeploymentRegion.EastUS,              new[] {DeploymentRegion.EastUS,              DeploymentRegion.WestEurope }}
-        };
+        private static readonly Dictionary<DeploymentRegion, DeploymentRegion[]> RegionSequenceMap =
+            new Dictionary<DeploymentRegion, DeploymentRegion[]>
+            {
+                {
+                    DeploymentRegion.WestEurope,
+                    new[] {DeploymentRegion.WestEurope, DeploymentRegion.EastUS, DeploymentRegion.SoutheastAsia}
+                },
+                {
+                    DeploymentRegion.EastUS,
+                    new[] {DeploymentRegion.EastUS, DeploymentRegion.WestEurope, DeploymentRegion.SoutheastAsia}
+                },
+                {
+                    DeploymentRegion.SoutheastAsia,
+                    new[] {DeploymentRegion.SoutheastAsia, DeploymentRegion.EastUS, DeploymentRegion.WestEurope}
+                }
+            };
 
         /// <summary>
         /// simplified variant of full fledged method - <see cref="BuildConfiguration(string, string)"/>
@@ -110,6 +121,7 @@ namespace Eshopworld.DevOps
 
             if (string.IsNullOrWhiteSpace(name))
                 throw new DevOpsSDKException($"The environment variable {EnvironmentEnvVariable} is missing or its value is empty.");
+
             throw new DevOpsSDKException($"The environment variable {EnvironmentEnvVariable} contains value '{name}' is not a valid environment name.");
         }
 
@@ -171,7 +183,11 @@ namespace Eshopworld.DevOps
                 throw new DevOpsSDKException($"Unrecognized value for region environmental variable - {masterRegion}");
             }
 
-            return RegionSequenceMap[masterRegion];
+            var map = RegionSequenceMap[masterRegion];
+            return (environment == DeploymentEnvironment.Sand || environment == DeploymentEnvironment.Test ||
+                    environment == DeploymentEnvironment.Development)
+                ? map.Where(r => r != DeploymentRegion.SoutheastAsia)
+                : map;
         }
 
         /// <summary>

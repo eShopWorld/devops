@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>3.1.0</Version>
-    <PackageReleaseNotes>
-      Changed the order of configuration providers.
-      Now the order is: Key Vault secrets, configuration files, environment variables (later overwrites former).
+    <Version>4.2.0</Version>
+      Changed the order of configuration providers. Now the order is: configuration files, Key Vault secrets, environment variables (the later overwrites the former).
     </PackageReleaseNotes>
 
     <TargetFramework>netstandard2.0</TargetFramework>
