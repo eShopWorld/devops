@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appSettings.ORDER.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="appSettings.CI.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
