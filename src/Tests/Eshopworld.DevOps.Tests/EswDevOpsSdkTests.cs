@@ -19,6 +19,19 @@ public class EswDevOpsSdkTests
         sut["KeyRootAppSettings"].Should().BeEquivalentTo("AppSettingsValue");
     }
 
+    [Fact, IsLayer0]
+    public void BuildConfiguration_EnvironmentOverwrites()
+    {
+        Environment.SetEnvironmentVariable("OPTION2", "fromEnv", EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable("OPTION5", "fromEnv", EnvironmentVariableTarget.Process);
+        var sut = EswDevOpsSdk.BuildConfiguration(AssemblyDirectory, "ORDER");
+
+        sut["Option1"].Should().BeEquivalentTo("fromOrderAppSetting");
+        sut["Option2"].Should().BeEquivalentTo("fromEnv");
+        sut["Option3"].Should().BeEquivalentTo("value3");
+        sut["Option4"].Should().BeEquivalentTo("fromKV");
+        sut["Option5"].Should().BeEquivalentTo("fromENV");
+    }
 
     [Fact, IsLayer0]
     public void BuildConfiguration_NonTestMode()
@@ -29,7 +42,6 @@ public class EswDevOpsSdkTests
         sut["KeyTestAppSettings"].Should().BeNullOrEmpty();
     }
 
-
     [Fact, IsLayer0]
     public void BuildConfiguration_ReadFromEnvironmentalAppSettings()
 
@@ -38,7 +50,6 @@ public class EswDevOpsSdkTests
 
         sut["KeyENV1AppSettings"].Should().BeEquivalentTo("ENV1AppSettingsValue");
     }
-
 
     [Fact, IsLayer0]
     public void BuildConfiguration_ReadFromEnvironmentalVariable()
@@ -69,26 +80,6 @@ public class EswDevOpsSdkTests
         {
             var currentEnvironment = EswDevOpsSdk.GetEnvironment();
             currentEnvironment.Should().Be(env);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
-        }
-    }
-
-    [Theory, IsLayer0]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("PR")]
-    public void GeEnvironmentFailsTest(string env)
-    {
-        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
-        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, env, EnvironmentVariableTarget.Process);
-        try
-        {
-            Action func = () => EswDevOpsSdk.GetEnvironment();
-            func.Should().Throw<DevOpsSDKException>();
         }
         finally
         {

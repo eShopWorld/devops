@@ -53,43 +53,47 @@ namespace Eshopworld.DevOps
         }
 
         /// <summary>
-        /// Builds the <see cref="ConfigurationBuilder"/> and retrieves all main config sections from the resulting
-        ///     configuration.
+        /// Builds the <see cref="IConfigurationRoot"/> using standard ESW configuration sorces (appsettings files, key vaults, environment variables).
         /// </summary>
         /// <param name="basePath">The base path to use when looking for the JSON settings files.</param>
         /// <param name="environment">The name of the environment to scan for environmental configuration, null to skip.</param>
-        /// <returns>The configuration root after building the builder.</returns>
+        /// <returns>The configuration root.</returns>
         /// <remarks>
-        /// The configuration flow is:
-        ///     #1 Get the default appsettings.json
-        ///     #2 Get the environmental appsettings.{ENV}.json
-        ///     #3 Get the environment variables - Usually the KeyVault URI is injected here
-        ///     #4 Try to get the Vault setting from configuration
-        ///     #5 If Vault details are present, load configuration from the target vault using managed identities
+        /// The returned configuration is assembled from the following sources:
+        ///     #1 the appsettings.json file (if it exists)
+        ///     #2 the environmental appsettings.{ENV}.json file (if it exists and the <paramref name="environment"/> parameter is not empty)
+        ///     #3 the application's key vault (if its address is defined using an environment variable or in mentioned above appsettings files)
+        ///     #4 the environment variables
+        ///     
+        /// When an individual setting is defined in multiple places with different values, its last configuration source wins. It means any
+        /// settings can be overwritten using environment variables e.g. during development.
         /// </remarks>
         public static IConfigurationRoot BuildConfiguration(string basePath, string environment = null)
         {
-            var configBuilder = new ConfigurationBuilder().SetBasePath(basePath)
-                                                          .AddJsonFile("appsettings.json", optional: true);
-
-            if (!string.IsNullOrEmpty(environment))
-            {
-                configBuilder.AddJsonFile($"appsettings.{environment}.json", optional: true);
-            }
-
-            configBuilder.AddEnvironmentVariables();
-
+            var configBuilder = CreateInitialConfigurationBuilder()
+                .AddEnvironmentVariables();
             var config = configBuilder.Build();
             var vaultUrl = config[KeyVaultUrlKey];
+            if (string.IsNullOrEmpty(vaultUrl))
+                return config;
 
-            if (!string.IsNullOrEmpty(vaultUrl))
-            {
-                configBuilder.AddAzureKeyVault(vaultUrl,
+            var kvConfigBuilder = CreateInitialConfigurationBuilder()
+                .AddAzureKeyVault(vaultUrl,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager());
-            }
+                    new DefaultKeyVaultSecretManager())
+                .AddEnvironmentVariables();
+            return kvConfigBuilder.Build();
 
-            return configBuilder.Build();
+            IConfigurationBuilder CreateInitialConfigurationBuilder()
+            {
+                var builder = new ConfigurationBuilder();
+                builder.SetBasePath(basePath)
+                    .AddJsonFile("appsettings.json", optional: true);
+                if (!string.IsNullOrEmpty(environment))
+                    builder.AddJsonFile($"appsettings.{environment}.json", optional: true);
+
+                return builder;
+            }
         }
 
         /// <summary>
