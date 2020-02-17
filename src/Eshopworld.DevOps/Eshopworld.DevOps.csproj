@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <Version>5.0.0-preview1</Version>
-    <PackageReleaseNotes>
-      Changed the order of configuration providers. Now the order is: configuration files, Key Vault secrets, environment variables (the later overwrites the former).
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>Updated to netstandard2.1</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
     
