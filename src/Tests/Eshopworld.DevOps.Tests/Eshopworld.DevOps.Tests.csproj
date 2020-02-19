@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <DebugType>Full</DebugType>
     <SonarQubeTestProject>true</SonarQubeTestProject>
@@ -46,6 +46,10 @@
     <None Update="appsettings.TEST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
