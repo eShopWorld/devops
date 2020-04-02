@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.0.1-preview1</Version>
+    <Version>5.0.1</Version>
     <PackageReleaseNotes>Downgrade of Microsoft.Extensions.Configuration.AzureKeyVault</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
-    
+    <PackageId>Eshopworld.DevOps</PackageId>
+    <PackageIcon>icon.png</PackageIcon>
     <Authors>Oisin Haken, Artur Zgodzinski</Authors>
     <Company>Eshopworld</Company>
     <Copyright>Eshopworld</Copyright>
@@ -19,7 +20,11 @@
     <LangVersion>latest</LangVersion>
     <IncludeSource>True</IncludeSource>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Eshopworld.Core" Version="4.0.0" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
