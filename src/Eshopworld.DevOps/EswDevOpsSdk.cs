@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Azure.Security.KeyVault.Secrets;
+using Eshopworld.DevOps.AzureKeyVault;
 using JetBrains.Annotations;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace Eshopworld.DevOps
 {
@@ -77,10 +77,13 @@ namespace Eshopworld.DevOps
             if (string.IsNullOrEmpty(vaultUrl))
                 return config;
 
+            var secretClient = new SecretClient(
+                new Uri(vaultUrl),
+                new AzureServiceTokenCredential(),
+                new SecretClientOptions());
+
             var kvConfigBuilder = CreateInitialConfigurationBuilder()
-                .AddAzureKeyVault(vaultUrl,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
+                .AddAzureKeyVault(secretClient)
                 .AddEnvironmentVariables();
             return kvConfigBuilder.Build();
 
