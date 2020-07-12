@@ -74,7 +74,7 @@ namespace Eshopworld.DevOps
                 .AddEnvironmentVariables();
             var config = configBuilder.Build();
             var vaultUrl = config[KeyVaultUrlKey];
-            if (string.IsNullOrEmpty(vaultUrl))
+            if (string.IsNullOrWhiteSpace(vaultUrl))
                 return config;
 
             var secretClient = new SecretClient(

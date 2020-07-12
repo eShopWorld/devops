@@ -30,7 +30,7 @@ namespace Eshopworld.DevOps.AzureKeyVault
 
                 var secret = await _client.GetSecretAsync(secretProperties.Name).ConfigureAwait(false);
                 var key = _manager.GetKey(secret.Value);
-                Data.Add(key, secret.Value.Value);
+                data.Add(key, secret.Value.Value);
             }
 
             Data = data;

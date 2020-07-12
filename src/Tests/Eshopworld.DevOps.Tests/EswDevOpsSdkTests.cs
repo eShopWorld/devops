@@ -72,7 +72,7 @@ public class EswDevOpsSdkTests
     [InlineData("CI", DeploymentEnvironment.CI)]
     [InlineData("PREP", DeploymentEnvironment.Prep)]
     [InlineData("pRep", DeploymentEnvironment.Prep)]
-    public void GeEnvironmentTest(string envValue, DeploymentEnvironment env)
+    public void GetEnvironmentTest(string envValue, DeploymentEnvironment env)
     {
         var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue, EnvironmentVariableTarget.Process);
