@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Eshopworld.DevOps.AzureKeyVault;
 using JetBrains.Annotations;
@@ -79,7 +80,7 @@ namespace Eshopworld.DevOps
 
             var secretClient = new SecretClient(
                 new Uri(vaultUrl),
-                new AzureServiceTokenCredential(),
+                new DefaultAzureCredential(),
                 new SecretClientOptions());
 
             var kvConfigBuilder = CreateInitialConfigurationBuilder()
