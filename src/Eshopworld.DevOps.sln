@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eshopworld.DevOps", "Eshopworld.DevOps\Eshopworld.DevOps.csproj", "{C79B42E1-FF68-4E7D-B3A8-DEA720364371}"
 EndProject
@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eshopworld.DevOps.Tests", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{669E4EAC-F4DE-4156-B653-3592439C28D7}"
 	ProjectSection(SolutionItems) = preProject
+		codecoverage.runsettings = codecoverage.runsettings
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
