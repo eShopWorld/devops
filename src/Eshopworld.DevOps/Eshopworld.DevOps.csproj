@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.0.1</Version>
-    <PackageReleaseNotes>Downgrade of Microsoft.Extensions.Configuration.AzureKeyVault</PackageReleaseNotes>
+    <Version>5.1.1</Version>
+    <PackageReleaseNotes>Version bump</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
