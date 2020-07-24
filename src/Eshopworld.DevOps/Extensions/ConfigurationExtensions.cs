@@ -11,6 +11,9 @@
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
+        /// <summary>Key vault environment variable.</summary>
+        internal static string KeyVaultEnvKey = "KEYVAULT_URL";
+
         /// <summary>
         /// Binds the base section of the config to an actual class of type T.
         /// </summary>
@@ -66,7 +69,7 @@
         public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, params string[] @params)
         {
             // Get the expected keyvault url setting from the environment.
-            var vaultUrl = builder.GetValue<string>("KEYVAULT_URL");
+            var vaultUrl = builder.GetValue<string>(KeyVaultEnvKey);
 
             if (string.IsNullOrEmpty(vaultUrl))
             {
