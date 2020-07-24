@@ -17,7 +17,7 @@ public class Program
    
     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
     {
-		// By calling the UseDefaultConfigs, settings are loaded from environment, command line args, followed by appsettings.
+	// By calling the UseDefaultConfigs, settings are loaded from environment, command line args, followed by appsettings.
         builder.UseDefaultConfigs();
 
 		...
