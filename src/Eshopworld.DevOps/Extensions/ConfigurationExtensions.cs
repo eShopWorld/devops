@@ -105,7 +105,7 @@
             if (string.IsNullOrEmpty(vaultUrl))
                 throw new ArgumentException("Vault url must be set, ensure \"KEYVAULT_URL\" or \"KeyVaultInstanceName\" has been set in config", nameof(vaultUrl));
 
-            return AddKeyVaultSecrets(builder, new Uri(vaultUrl), @params.ToList());
+            return AddKeyVaultSecrets(builder, new Uri(vaultUrl), @params);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@
         /// or
         /// Problem occurred retrieving secrets from KeyVault using Managed Identity
         /// </exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, List<string> keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, IEnumerable<string> keys, bool suppressKeyNotFoundError = true)
         {
             try
             {
@@ -141,7 +141,7 @@
                 {
                     try
                     {
-                        var secret = vault.GetSecretAsync(vaultUrl.AbsolutePath, key).GetAwaiter().GetResult();
+                        var secret = vault.GetSecretAsync(vaultUrl.AbsolutePath, key).ConfigureAwait(false).GetAwaiter().GetResult();
                         secrets.Add(new KeyValuePair<string, string>(key, secret.Value));
                     }
                     catch (KeyVaultErrorException e)

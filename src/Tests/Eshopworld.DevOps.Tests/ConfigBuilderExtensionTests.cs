@@ -8,13 +8,13 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-public class ConfigBuilderExtensionTests2 : IDisposable
+public class ConfigurationExtentionsTests : IDisposable
 {
     private const string TestAppSettingsFile = "appsettings_unit.json";
     private const string TestKubernetestSecretFile = "TestKey2";
     private readonly string _kubernetesTestSecretPath;
 
-    public ConfigBuilderExtensionTests2()
+    public ConfigurationExtentionsTests()
     {
         // Setup test files.
         var currentDir = Directory.GetCurrentDirectory();
