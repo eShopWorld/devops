@@ -52,6 +52,40 @@ public class Startup
 
 NOTE: When there's a problem pulling the "KEYVAULT_URL" config or the fallback "KeyVaultInstanceName" key (which the extension method `AddKeyVaultSecrets` uses), then an exception would be thrown to the calling code. This would (and should) happen during application bootstrap (either `wehHost.ConfigureAppConfiguration` or `genericHost.ConfigureAppConfiguration`). We want this because the app wont be able to load secrets it needs to run.
 
+## Using the loaded configuration
+
+Take this class:
+
+```csharp
+public class AppSettings {
+	public string TenantId { get; set; }
+	public string SubscriptionId { get; set; }
+	public string OtherSecretName { get; set; }
+}
+```
+
+We can bind the settings to this class using the `BindBaseSection` call as follows:
+
+```csharp
+// Taken from Startup.cs after the ConfigureAppConfiguration above has been run.
+
+public void ConfigureServices(IServiceCollection services)
+{
+	// Example of binding settings directly to a class (without the "GetSection" call).
+	var appSettings = _configuration.BindBaseSection<AppSettings>();
+	
+	// Example of directly using the settings directly after they are loaded.
+	var tenantId = _configuration["TenantId"];
+	
+	var otherSecret = null;
+	
+	if (_configuration.TryGetValue<string>("OtherSecretName"), out otherSecret) 
+	{
+		... do something conditional if the setting exists ...
+	}
+}
+```
+
 ## How to access this package
 All of the eshopworld.* packages are published to a public NuGet feed.  To consume this on your local development machine, please add the following feed to your feed sources in Visual Studio:
 https://eshopworld.myget.org/F/github-dev/api/v3/index.json
