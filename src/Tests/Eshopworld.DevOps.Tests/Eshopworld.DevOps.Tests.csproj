@@ -11,6 +11,16 @@
 
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="TestKey2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestKey2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 
   <ItemGroup>
     <Content Include="appsettings.json">

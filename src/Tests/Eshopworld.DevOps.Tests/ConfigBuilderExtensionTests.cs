@@ -9,34 +9,18 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
-public class ConfigurationExtentionsTests : IDisposable
+public class ConfigurationExtentionsTests
 {
-    private const string TestAppSettingsFile = "appsettings_unit.json";
-    private const string TestKubernetestSecretFile = "TestKey2";
-    private readonly string _kubernetesTestSecretPath;
-
-    public ConfigurationExtentionsTests()
-    {
-        // Setup test files.
-        var currentDir = Directory.GetCurrentDirectory();
-        _kubernetesTestSecretPath = currentDir;
-
-        // Method 1 - app settings json file.
-        File.WriteAllText(Path.Combine(currentDir, TestAppSettingsFile), "{\"TestKey1\":\"testVal1\", \"TestKey2\": { \"TestKey3\":\"testVal3\" } }");
-
-        // Method 2 - Kubernetes Secrets simulation.
-        File.WriteAllText(Path.Combine(currentDir, TestKubernetestSecretFile), "testVal2");
-    }
-
     /// <summary>Ensure BindBaseSection on the IConfigurationBuilder, binds root appsettings to a model as expected.</summary>
     [Fact, IsUnit]
     public void Test_ConfigBuilder_BindBaseSection()
     {
         // Arrange
+        var kubeSecretPath = Directory.GetCurrentDirectory();
         var configBuilder = new ConfigurationBuilder();
 
         // Act
-        configBuilder.UseDefaultConfigs(TestAppSettingsFile, _kubernetesTestSecretPath);
+        configBuilder.UseDefaultConfigs("appsettings.json", kubeSecretPath);
         var boundConfig = configBuilder.Build().BindBaseSection<TestSettings>();
 
         // Assert
@@ -49,6 +33,7 @@ public class ConfigurationExtentionsTests : IDisposable
     public void Test_ConfigBuilder_AddKubernetesSecrets()
     {
         // Arrange
+        var kubeSecretPath = Directory.GetCurrentDirectory();
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new List<KeyValuePair<string, string>>
         {
@@ -56,7 +41,7 @@ public class ConfigurationExtentionsTests : IDisposable
         });
 
         // Act
-        configBuilder.AddKubernetesSecrets(_kubernetesTestSecretPath);
+        configBuilder.AddKubernetesSecrets(kubeSecretPath);
         var lookupResult = configBuilder.GetValue<string>("TestKey2");
 
         // Assert
@@ -69,8 +54,9 @@ public class ConfigurationExtentionsTests : IDisposable
     public void Test_ConfigBuilder_UseDefaultConfigs()
     {
         // Arrange
+        var kubeSecretPath = Directory.GetCurrentDirectory();
         IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs(TestAppSettingsFile, Directory.GetCurrentDirectory())
+            .UseDefaultConfigs("appsettings.json", kubeSecretPath)
             .Build();
 
         var settings = configBuilder.Get<TestSettings>();
@@ -88,8 +74,9 @@ public class ConfigurationExtentionsTests : IDisposable
     public void Test_ConfigBuilder_UseDefaultConfigsWrongPaths()
     {
         // Arrange
+        var kubeSecretPath = Directory.GetCurrentDirectory(); // correct path
         IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs("madeUpSettings.json", _kubernetesTestSecretPath)
+            .UseDefaultConfigs("madeUpSettings.json", kubeSecretPath)
             .Build();
 
         // Act
@@ -164,9 +151,7 @@ public class ConfigurationExtentionsTests : IDisposable
     public void Test_ConfigBuilder_TryGetValue_FailWithWrongKey()
     {
         // Arrange
-        IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs(TestAppSettingsFile, Directory.GetCurrentDirectory())
-            .Build();
+        IConfiguration configBuilder = new ConfigurationBuilder().UseDefaultConfigs().Build();
 
         // Act/Assert
         configBuilder.TryGetValue("WrongKey", out string value).Should().BeFalse();
@@ -178,9 +163,7 @@ public class ConfigurationExtentionsTests : IDisposable
     public void Test_ConfigBuilder_TryGetValue_FailWithNullKey()
     {
         // Arrange
-        IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs(TestAppSettingsFile, Directory.GetCurrentDirectory())
-            .Build();
+        IConfiguration configBuilder = new ConfigurationBuilder().UseDefaultConfigs().Build();
 
         // Act/Assert
         configBuilder.TryGetValue(null, out string value).Should().BeFalse();
@@ -191,9 +174,7 @@ public class ConfigurationExtentionsTests : IDisposable
     [Fact, IsUnit]
     public void Test_ConfigBuilder_TryGetValue()
     {
-        IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs(TestAppSettingsFile, Directory.GetCurrentDirectory())
-            .Build();
+        IConfiguration configBuilder = new ConfigurationBuilder().UseDefaultConfigs().Build();
 
         // Act/Assert
         configBuilder.TryGetValue("TestKey1", out string value).Should().BeTrue();
@@ -286,14 +267,6 @@ public class ConfigurationExtentionsTests : IDisposable
 
         // Assert
         config.TryGetValue<object>("MadeUpKey1", out _).Should().BeFalse();
-    }
-
-    public void Dispose()
-    {
-        // Clean up test files.
-        var currentDir = Directory.GetCurrentDirectory();
-        File.Delete(Path.Combine(currentDir, TestAppSettingsFile));
-        File.Delete(Path.Combine(currentDir, TestKubernetestSecretFile));
     }
 
     private class TestSettings
