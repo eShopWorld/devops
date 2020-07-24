@@ -1,10 +1,10 @@
-﻿using Eshopworld.DevOps;
-
+﻿// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Configuration
 {
-    using Azure.KeyVault.Models;
     using Azure.KeyVault;
+    using Azure.KeyVault.Models;
     using Azure.Services.AppAuthentication;
+    using Eshopworld.DevOps;
     using System;
     using System.Collections.Generic;
     using System.Linq;
