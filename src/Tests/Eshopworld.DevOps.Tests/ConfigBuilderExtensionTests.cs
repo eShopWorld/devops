@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.Azure.KeyVault;
@@ -266,7 +267,7 @@ public class ConfigurationExtentionsTests : IDisposable
     /// PRESUMPTION: KEYVAULT_URL is set on the test server.
     /// </summary>
     [Fact, IsIntegration]
-    public void Test_KeyVault_Builder_AddKeyVaultSecrets_SecretAdded()
+    public async Task Test_KeyVault_Builder_AddKeyVaultSecrets_SecretAdded()
     {
         // Arrange - Principle needs "Set" permissions to run this.
         IConfigurationBuilder builder = new ConfigurationBuilder();
@@ -277,7 +278,7 @@ public class ConfigurationExtentionsTests : IDisposable
         // Set the test value in KV.
         var vaultUrl = builder.GetValue<string>("KEYVAULT_URL");
         var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
-        vault.SetSecretAsync(vaultUrl, "RealKey1", "MyValue1").GetAwaiter().GetResult();
+        await vault.SetSecretAsync(vaultUrl, "RealKey1", "MyValue1");
 
         // Add the secret to the builder using extension method.
         builder.AddKeyVaultSecrets("RealKey1");
