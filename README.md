@@ -67,17 +67,20 @@ public class Startup
 
 		var kvInstance1 = new Uri("https://instance1.vault.azure.net");
 		var kvInstance2 = new Uri("https://instance2.vault.azure.net");
-		
-        // Pass the name of the secrets you wish to load into configuration.
+
+        // Overload1 Add from key vault loaded in KEYVAULT_URL setting.
+        builder.AddKeyVaultSecrets("SomeKey1", "SomeKey2");
+
+        // Overload2 Pass the instance and list of the secrets you wish to load into configuration.
         builder.AddKeyVaultSecrets(kvInstance1, new [] {
 			"TenantId", 
 			"SubscriptionId", 
 			"OtherSecretName" });
 		
 		builder.AddKeyVaultSecrets(kvInstance2, new [] {
-			"TenantId", 
-			"SubscriptionId", 
-			"OtherSecretName" });
+			"OtherKey1", 
+			"OtherKey2", 
+			"OtherKey3" });
     }
     ...
    
