@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Extensions.Configuration
+﻿using Eshopworld.DevOps;
+
+namespace Microsoft.Extensions.Configuration
 {
     using Azure.KeyVault.Models;
     using Azure.KeyVault;
@@ -11,9 +13,6 @@
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
-        /// <summary>Key vault environment variable.</summary>
-        internal static string KeyVaultEnvKey = "KEYVAULT_URL";
-
         /// <summary>
         /// Binds the base section of the config to an actual class of type T.
         /// </summary>
@@ -69,7 +68,7 @@
         public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, params string[] @params)
         {
             // Get the expected keyvault url setting from the environment.
-            var vaultUrl = builder.GetValue<string>(KeyVaultEnvKey);
+            var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
 
             if (string.IsNullOrEmpty(vaultUrl))
             {
