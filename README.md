@@ -10,9 +10,10 @@ DevOps extensions, used for application configuration setup.
 ## Load configurations
 
 ```csharp
-public class Startup
+public class Program
 {
    ...
+   
    
     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
     {
@@ -31,7 +32,7 @@ public class Startup
 Individual secrets can be loaded into configuration from Key Vault in the following way:
 
 ```csharp
-public class Startup
+public class Program
 {
    ...
    
@@ -57,7 +58,7 @@ NOTE: When there's a problem pulling the "KEYVAULT_URL" config or the fallback "
 Load from multiple Key Vaults in the following way:
 
 ```csharp
-public class Startup
+public class Program
 {
    ...
    
@@ -85,6 +86,7 @@ public class Startup
     ...
    
 }
+
 ```
 
 ## Using the loaded configuration
@@ -119,6 +121,72 @@ public void ConfigureServices(IServiceCollection services)
 		... do something conditional if the setting exists ...
 	}
 }
+```
+
+## Example of using config with WebHostBuilder
+
+```csharp
+public class Program
+{
+
+	...
+
+	// In program, we setup our configuration in the standard microsoft way...
+	private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+		WebHost.CreateDefaultBuilder(args)
+			.ConfigureAppConfiguration(config => {
+
+				// Import default configurations (env vars, command line args, appSettings.json etc).
+				config.UseDefaultConfigs();
+
+				// Load config from key vault.
+				config.AddKeyVaultSecrets(config.GetValue<string>("KeyVaultInstanceName"),
+					"TenantId",
+					"SubscriptionId",
+					"OtherSecretName");
+			})
+			.ConfigureLogging((context, logging) => {
+				
+				// Add logging configuration and loggers.
+				logging.AddConfiguration(context.Configuration)
+					.AddConsole()
+					.AddDebug();
+			})
+			.UseStartup<Startup>();
+
+	...
+}
+```
+
+```csharp
+public class Startup
+{
+	private readonly ILogger<Startup> _logger;
+	private readonly IConfiguration _configuration;
+
+	// We can then grab IConfiguration from the constructor, to use in our startup file as follows:
+	public Startup(IConfiguration configuration, ILogger<Startup> logger)
+	{
+		_configuration = configuration;
+		_logger = logger;
+	}
+
+	public void ConfigureServices(IServiceCollection services)
+	{
+		// Setup application settings (options).
+		_appSettings = _configuration.BindBaseSection<AppSettings>();
+		
+		// Other setting bindings...
+		var bb = BigBrother.CreateDefault(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
+		_configuration.GetSection("Telemetry").Bind(_telemetrySettings);
+		_configuration.GetSection("HttpCors").Bind(_corsSettings);
+		_configuration.GetSection("RefreshingTokenProviderSettings").Bind(_refreshingTokenProviderOptions);
+		_configuration.GetSection("Endpoints").Bind(_endpoints);
+	}
+}
+
+
+
 ```
 
 ## How to access this package
