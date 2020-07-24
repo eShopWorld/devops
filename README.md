@@ -26,7 +26,7 @@ public class Startup
 }
 ```
 
-## Load individual secrets from Key Vault
+## Load individual secrets from a single Key Vault
 
 Individual secrets can be loaded into configuration from Key Vault in the following way:
 
@@ -51,6 +51,38 @@ public class Startup
 ```
 
 NOTE: When there's a problem pulling the "KEYVAULT_URL" config or the fallback "KeyVaultInstanceName" key (which the extension method `AddKeyVaultSecrets` uses), then an exception would be thrown to the calling code. This would (and should) happen during application bootstrap (either `wehHost.ConfigureAppConfiguration` or `genericHost.ConfigureAppConfiguration`). We want this because the app wont be able to load secrets it needs to run.
+
+## Load individual secrets from multiple key vaults
+
+Load from multiple Key Vaults in the following way:
+
+```csharp
+public class Startup
+{
+   ...
+   
+    public void ConfigureAppConfiguration(IConfigurationBuilder builder)
+    {
+        builder.UseDefaultConfigs();
+
+		var kvInstance1 = new Uri("https://instance1.vault.azure.net");
+		var kvInstance2 = new Uri("https://instance2.vault.azure.net");
+		
+        // Pass the name of the secrets you wish to load into configuration.
+        builder.AddKeyVaultSecrets(kvInstance1, new [] {
+			"TenantId", 
+			"SubscriptionId", 
+			"OtherSecretName" });
+		
+		builder.AddKeyVaultSecrets(kvInstance2, new [] {
+			"TenantId", 
+			"SubscriptionId", 
+			"OtherSecretName" });
+    }
+    ...
+   
+}
+```
 
 ## Using the loaded configuration
 
