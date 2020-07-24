@@ -16,11 +16,10 @@ public class ConfigurationExtentionsTests
     public void Test_ConfigBuilder_BindBaseSection()
     {
         // Arrange
-        var kubeSecretPath = Directory.GetCurrentDirectory();
         var configBuilder = new ConfigurationBuilder();
 
         // Act
-        configBuilder.UseDefaultConfigs("appsettings.json", kubeSecretPath);
+        configBuilder.UseDefaultConfigs().AddValue("TestKey2", "testVal2");
         var boundConfig = configBuilder.Build().BindBaseSection<TestSettings>();
 
         // Assert
@@ -28,35 +27,13 @@ public class ConfigurationExtentionsTests
         boundConfig.TestKey2.Should().Be("testVal2");
     }
 
-    /// <summary>Ensure AddKubernetesSecrets on the IConfigurationBuilder, adds config from Kubernetes secrets as expected.</summary>
-    [Fact, IsUnit]
-    public void Test_ConfigBuilder_AddKubernetesSecrets()
-    {
-        // Arrange
-        var kubeSecretPath = Directory.GetCurrentDirectory();
-        var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddInMemoryCollection(new List<KeyValuePair<string, string>>
-        {
-            new KeyValuePair<string, string>("testKey", "testVal")
-        });
-
-        // Act
-        configBuilder.AddKubernetesSecrets(kubeSecretPath);
-        var lookupResult = configBuilder.GetValue<string>("TestKey2");
-
-        // Assert
-        lookupResult.Should().NotBeNullOrEmpty();
-        lookupResult.Should().Be("testVal2");
-    }
-
     /// <summary>Ensure using default configs loads all expected values from various sources (in the expected order).</summary>
     [Fact, IsUnit]
     public void Test_ConfigBuilder_UseDefaultConfigs()
     {
         // Arrange
-        var kubeSecretPath = Directory.GetCurrentDirectory();
         IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs("appsettings.json", kubeSecretPath)
+            .UseDefaultConfigs()
             .Build();
 
         var settings = configBuilder.Get<TestSettings>();
@@ -65,8 +42,6 @@ public class ConfigurationExtentionsTests
         settings.Should().NotBeNull();
         settings.TestKey1.Should().NotBeNullOrEmpty(); // loaded from appsettings
         settings.TestKey1.Should().Be("testVal1");
-        settings.TestKey2.Should().NotBeNullOrEmpty(); // loaded from kubernetes secret
-        settings.TestKey2.Should().Be("testVal2");
     }
 
     /// <summary>Ensure Use Default Builder with wrong paths still sets up the config with the right path.</summary>
@@ -74,9 +49,9 @@ public class ConfigurationExtentionsTests
     public void Test_ConfigBuilder_UseDefaultConfigsWrongPaths()
     {
         // Arrange
-        var kubeSecretPath = Directory.GetCurrentDirectory(); // correct path
         IConfiguration configBuilder = new ConfigurationBuilder()
-            .UseDefaultConfigs("madeUpSettings.json", kubeSecretPath)
+            .UseDefaultConfigs("madeUpSettings.json")
+            .AddValue("TestKey2", "testVal2")
             .Build();
 
         // Act

@@ -5,7 +5,6 @@
     using Azure.Services.AppAuthentication;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net;
 
@@ -28,47 +27,21 @@
         }
 
         /// <summary>
-        /// Adds the kubernetes secrets config.  Reads from a directory where it takes the file name as the key (config property) and the
-        /// value is the content within the file.
-        /// </summary>
-        /// <param name="builder">The configuration builder to bind to.</param>
-        /// <param name="path">The path to the directory containing the secrets (defaults to "secrets").</param>
-        /// <param name="optional">if set to <c>true</c>, ignore if does not exist [optional].</param>
-        /// <returns>The configuration builder after config has been added.</returns>
-        public static IConfigurationBuilder AddKubernetesSecrets(this IConfigurationBuilder builder, string path = null, bool optional = true)
-        {
-            // Default path if not set.
-            path ??= "/etc/secrets";
-
-            // Default return if we cant find this folder to avoid runtime errors.  Worst case scenario
-            // is that the settings are not loaded from here.
-            if (!Directory.Exists(path))
-            {
-                return builder;
-            }
-
-            return builder.AddKeyPerFile(path, optional);
-        }
-
-        /// <summary>
         /// Uses the desired default configurations.  Environment taken from EnvVariable "ENVIRONMENT" if not passed.
         /// Builds configuration sources in the following order:
-        /// - 1. Kubernetes Secrets (looks in the "etc/secrets" folder by default)
-        /// - 2. Environment variables
-        /// - 3. Command line arguments
-        /// - 4. Json file (appsettings.json, followed by appsettings.{env}.json)
+        /// - 1. Environment variables
+        /// - 2. Command line arguments
+        /// - 3. Json file (appsettings.json, followed by appsettings.{env}.json)
         /// Note:
         /// - appsettings.{env}.json WILL override appsettings.json file settings.
         /// </summary>
         /// <param name="builder">The configuration builder to bind to.</param>
         /// <param name="appSettingsPath">The application settings path.</param>
         /// <param name="environment">Specify the environment - optional, as its loaded from the ENVIRONMENT env variable if not set here.</param>
-        /// <param name="kubernetesSecretsPath">The K8S secrets path.</param>
         /// <returns>The configuration builder after config has been added.</returns>
-        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string kubernetesSecretsPath = null, string environment = null)
+        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string environment = null)
         {
-            builder.AddKubernetesSecrets(kubernetesSecretsPath)
-                    .AddEnvironmentVariables()
+            builder.AddEnvironmentVariables()
                     .AddCommandLine(Environment.GetCommandLineArgs())
                     .AddJsonFile(appSettingsPath, true);
 
@@ -103,7 +76,7 @@
             }
 
             if (string.IsNullOrEmpty(vaultUrl))
-                throw new ArgumentException("Vault url must be set, ensure \"KEYVAULT_URL\" or \"KeyVaultInstanceName\" has been set in config", nameof(vaultUrl));
+                throw new InvalidOperationException("Vault url must be set, ensure \"KEYVAULT_URL\" or \"KeyVaultInstanceName\" has been set in config");
 
             return AddKeyVaultSecrets(builder, new Uri(vaultUrl), @params);
         }
@@ -118,11 +91,8 @@
         /// <param name="suppressKeyNotFoundError">If [true], when a key is missing an invalid operation exception will be thrown. If [false], the
         /// error will be suppressed and it will just not add the key to the returned collection.</param>
         /// <returns>IConfigurationBuilder.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// Expecting setting "KeyVaultInstanceName" to infer instance name
-        /// or
-        /// Problem occurred retrieving secrets from KeyVault using Managed Identity
-        /// </exception>
+        /// <exception cref="ArgumentException">Vault url must be set</exception>
+        /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
         public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, IEnumerable<string> keys, bool suppressKeyNotFoundError = true)
         {
             try
