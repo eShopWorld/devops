@@ -125,10 +125,11 @@ public void ConfigureServices(IServiceCollection services)
 
 ## Example of using config with WebHostBuilder
 
+Example of using with a WebHostBuilder when bootstrapping a Web Application.
+
 ```csharp
 public class Program
 {
-
 	...
 
 	// In program, we setup our configuration in the standard microsoft way...
@@ -183,10 +184,9 @@ public class Startup
 		_configuration.GetSection("RefreshingTokenProviderSettings").Bind(_refreshingTokenProviderOptions);
 		_configuration.GetSection("Endpoints").Bind(_endpoints);
 	}
+	
+	...
 }
-
-
-
 ```
 
 ## How to access this package
