@@ -50,6 +50,7 @@ public class Startup
 }
 ```
 
+NOTE: When there's a problem pulling the "KEYVAULT_URL" config or the fallback "KeyVaultInstanceName" key (which the extension method `AddKeyVaultSecrets` uses), then an exception would be thrown to the calling code. This would (and should) happen during application bootstrap (either `wehHost.ConfigureAppConfiguration` or `genericHost.ConfigureAppConfiguration`). We want this because the app wont be able to load secrets it needs to run.
 
 ## How to access this package
 All of the eshopworld.* packages are published to a public NuGet feed.  To consume this on your local development machine, please add the following feed to your feed sources in Visual Studio:
