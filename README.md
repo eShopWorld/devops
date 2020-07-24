@@ -174,7 +174,7 @@ public class Startup
 
 	public void ConfigureServices(IServiceCollection services)
 	{
-		// Setup application settings (options).
+		// You could bind directly to a poco class of your choice.
 		_appSettings = _configuration.BindBaseSection<AppSettings>();
 		
 		// Other setting bindings...
