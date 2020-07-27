@@ -55,7 +55,7 @@ public class ConfigBuilderIntegrationTests
         Action loadSettings = () => { builder.AddKeyVaultSecrets(null, new List<string> {"key1", "key2"}); };
 
         // Assert
-        loadSettings.Should().Throw<ArgumentException>();
+        loadSettings.Should().Throw<ArgumentNullException>();
     }
 
     /// <summary>
