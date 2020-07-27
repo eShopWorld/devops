@@ -42,15 +42,15 @@ public class ConfigBuilderUnitTests
     public void Test_ConfigBuilder_AddValues()
     {
         // Arrange
-        var configs = new List<KeyValuePair<string, string>> {
-            new KeyValuePair<string, string>("testKey", "testVal"),
-            new KeyValuePair<string, string>("testKey1", "testVal1"),
-            new KeyValuePair<string, string>("testKey2", "testVal2"),
+        var configs = new Dictionary<string, string> {
+            { "testKey", "testVal" },
+            { "testKey1", "testVal1" },
+            { "testKey2", "testVal2" }
         };
         var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddValues(configs);
 
         // Act
+        configBuilder.AddValues(configs);
         var lookupResult = configBuilder.GetValue<string>("testKey");
         var lookupResult1 = configBuilder.GetValue<string>("testKey1");
         var lookupResult2 = configBuilder.GetValue<string>("testKey2");

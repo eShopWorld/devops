@@ -164,7 +164,7 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="builder">Builder to extend.</param>
         /// <param name="values">List of values to add.</param>
         /// <returns>Builder with values added.</returns>
-        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IEnumerable<KeyValuePair<string, string>> values)
+        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IDictionary<string, string> values)
         {
             return builder.AddInMemoryCollection(values);
         }
