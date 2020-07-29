@@ -20,10 +20,6 @@
 
   <ItemGroup>
     <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
