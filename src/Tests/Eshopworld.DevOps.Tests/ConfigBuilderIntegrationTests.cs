@@ -93,7 +93,7 @@ public class ConfigBuilderIntegrationTests
         var config = builder.Build();
 
         // Assert
-        config.TryGetValue<object>("keyVaultItem", out var result).Should().BeFalse();
+        config.TryGetValue<object>("keyVaultItem", out var result).Should().BeTrue();
         result.Should().NotBeNull();
         result.Should().Be("keyVaultItemValue");
     }
