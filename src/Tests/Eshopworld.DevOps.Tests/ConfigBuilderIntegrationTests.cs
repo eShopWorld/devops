@@ -82,20 +82,13 @@ public class ConfigBuilderIntegrationTests
     /// PRESUMPTION: KEYVAULT_URL is set on the test server.
     /// </summary>
     [Fact, IsIntegration]
-    public async Task Test_KeyVault_Builder_AddKeyVaultSecrets_SecretAdded()
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_SecretAdded()
     {
         // Arrange - Principle needs "Set" permissions to run this.
         IConfigurationBuilder builder = new ConfigurationBuilder();
 
         // Act
         builder.UseDefaultConfigs();
-
-        // Set the test value in KV.
-        var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
-        var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
-        await vault.SetSecretAsync(vaultUrl, "RealKey1", "MyValue1");
-
-        // Add the secret to the builder using extension method.
         builder.AddKeyVaultSecrets("keyVaultItem");
         var config = builder.Build();
 
