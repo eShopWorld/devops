@@ -96,11 +96,13 @@ public class ConfigBuilderIntegrationTests
         await vault.SetSecretAsync(vaultUrl, "RealKey1", "MyValue1");
 
         // Add the secret to the builder using extension method.
-        builder.AddKeyVaultSecrets("RealKey1");
+        builder.AddKeyVaultSecrets("keyVaultItem");
         var config = builder.Build();
 
         // Assert
-        config.TryGetValue<object>("MadeUpKey1", out _).Should().BeFalse();
+        config.TryGetValue<object>("keyVaultItem", out var result).Should().BeFalse();
+        result.Should().NotBeNull();
+        result.Should().Be("keyVaultItemValue");
     }
 
     private class TestSettings
