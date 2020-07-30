@@ -122,7 +122,7 @@ namespace Microsoft.Extensions.Configuration
                 {
                     try
                     {
-                        var secret = vault.GetSecretAsync(vaultUrl.AbsolutePath, key).ConfigureAwait(false).GetAwaiter().GetResult();
+                        var secret = vault.GetSecretAsync(vaultUrl.AbsoluteUri, key).ConfigureAwait(false).GetAwaiter().GetResult();
                         secrets.Add(new KeyValuePair<string, string>(key, secret.Value));
                     }
                     catch (KeyVaultErrorException e)
