@@ -18,13 +18,12 @@ Below is an example of loading various config sources using the `UseDefaultConfi
 public class Program
 {
    ...
-
    public void ConfigureAppConfiguration(IConfigurationBuilder builder)
    {
-		// Load config sources by calling the UseDefaultConfigs.
+	// Load config sources by calling the UseDefaultConfigs.
         builder.UseDefaultConfigs();
 
-		// Load other config here...
+	// Load other config here...
    }
    ...
 }
@@ -36,20 +35,18 @@ Individual secrets can be loaded into configuration, directly from Key Vault in 
 ```csharp
 public class Program
 {
-	...
-   
-	public void ConfigureAppConfiguration(IConfigurationBuilder builder)
-	{
-		// Load various config sources.
-        builder.UseDefaultConfigs();
+     ...
+     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
+     {
+          // Load various config sources.
+          builder.UseDefaultConfigs();
 
-        // Pass the name of the secrets you wish to load into the configuration builder.
-        builder.AddKeyVaultSecrets(  
-			"TenantId", 
-			"SubscriptionId", 
-			"OtherSecretName");
-	}
-	...
+          // Pass the name of the secrets you wish to load into the configuration builder.
+          builder.AddKeyVaultSecrets("TenantId", 
+		                     "SubscriptionId", 
+		                     "OtherSecretName");
+     }
+     ...
 }
 ```
 
@@ -61,9 +58,9 @@ Otherwise, if the `KEYVAULT_URL` setting cannot be found, the method will fallba
 AppSettings.json
 ```json
 {
-	"KeyVaultInstanceName": "example1",
-	"SomeOtherSetting1": 100,
-	"SomeOtherSetting2": false
+     "KeyVaultInstanceName": "example1",
+     "SomeOtherSetting1": 100,
+     "SomeOtherSetting2": false
 }
 ```
 
@@ -78,21 +75,22 @@ public class Program
 	...
     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
     {
-		// Load from all config sources.
-        builder.UseDefaultConfigs();
+	   // Load from all config sources.
+           builder.UseDefaultConfigs();
 
-        // Overload method 1: Add from key vault loaded in KEYVAULT_URL setting.
-        builder.AddKeyVaultSecrets("SomeKey1", "SomeKey2");
+           // Overload method 1: Add from key vault loaded in KEYVAULT_URL setting.
+           builder.AddKeyVaultSecrets("SomeKey1", "SomeKey2");
 
-		var kvInstance1 = new Uri("https://instance1.vault.azure.net");
-		var kvInstance2 = new Uri("https://instance2.vault.azure.net");
+	   var kvUriInstance1 = new Uri("https://instance1.vault.azure.net");
+	   var kvUriInstance2 = new Uri("https://instance2.vault.azure.net");
 
-        // Overload method 2: Pass the instance and list of the secrets you wish to load into configuration.
-        builder.AddKeyVaultSecrets(kvInstance1, new [] {
+           // Overload method 2: Pass the instance and list of the secrets you wish to load into configuration.
+           builder.AddKeyVaultSecrets(kvUriInstance1, new [] {
 			"TenantId", 
 			"SubscriptionId", 
 			"OtherSecretName" });
-		builder.AddKeyVaultSecrets(kvInstance2, new [] {
+			
+	   builder.AddKeyVaultSecrets(kvUriInstance2, new [] {
 			"OtherKey1", 
 			"OtherKey2", 
 			"OtherKey3" });
@@ -103,13 +101,13 @@ public class Program
 
 ## Using the loaded configuration
 
-Take this class:
+Take this POCO class:
 
 ```csharp
 public class AppSettings {
-	public string TenantId { get; set; }
-	public string SubscriptionId { get; set; }
-	public string OtherSecretName { get; set; }
+     public string TenantId { get; set; }
+     public string SubscriptionId { get; set; }
+     public string OtherSecretName { get; set; }
 }
 ```
 
@@ -120,18 +118,18 @@ We can bind the settings to this class using the `BindBaseSection` call as follo
 
 public void ConfigureServices(IServiceCollection services)
 {
-	// Example of binding settings directly to a class (without the "GetSection" call).
-	var appSettings = _configuration.BindBaseSection<AppSettings>();
+     // Example of binding settings directly to a class (without the "GetSection" call).
+     var appSettings = _configuration.BindBaseSection<AppSettings>();
 	
-	// Example of directly using the settings directly after they are loaded.
-	var tenantId = _configuration["TenantId"];
+     // Example of directly using the settings directly after they are loaded.
+     var tenantId = _configuration["TenantId"];
 	
-	var otherSecret = null;
+     var otherSecret = null;
 	
-	if (_configuration.TryGetValue<string>("OtherSecretName"), out otherSecret) 
-	{
-		... do something conditional if the setting exists ...
-	}
+     if (_configuration.TryGetValue<string>("OtherSecretName"), out otherSecret) 
+     {
+	... do something conditional if the setting exists ...
+     }
 }
 ```
 
@@ -144,49 +142,45 @@ Example of using with a WebHostBuilder when bootstrapping a Web Application.
 ```csharp
 public class Program
 {
-	public static void Main(string[] args)
-    {
+     public static void Main(string[] args)
+     {
         try
         {
             // Build and run the web host.
             var host = CreateWebHostBuilder(args).Build().Run();
         }
         catch (Exception e)
-		{
-			// Probably want to log this using BigBrother (there's a bit of a 
-			// race condition here as BB might not be wired up yet!).
+	{
+	     // Probably want to log this using BigBrother (there's a bit of a 
+	     // race condition here as BB might not be wired up yet!).
             
-			// Catch startup errors and bare minimum log to console or event log.
-            Console.WriteLine($"Problem occured during startup of {Assembly.GetExecutingAssembly().GetName().Name}");
-            Console.WriteLine(e);
+	     // Catch startup errors and bare minimum log to console or event log.
+             Console.WriteLine($"Problem occured during startup of {Assembly.GetExecutingAssembly().GetName().Name}");
+             Console.WriteLine(e);
 
-			// Stop the application by continuing to throw the exception.
-            throw;
+	     // Stop the application by continuing to throw the exception.
+             throw;
         }
-    }
+     }
 
 	
-	// In program, we setup our configuration in the standard microsoft way...
-	private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-		WebHost.CreateDefaultBuilder(args)
-			.ConfigureAppConfiguration(config => {
+     // In program, we setup our configuration in the standard microsoft way...
+     private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+          WebHost.CreateDefaultBuilder(args)
+		 .ConfigureAppConfiguration(config => {
 
-				// Import default configurations (env vars, command line args, appSettings.json etc).
-				config.UseDefaultConfigs();
+	    	     // Import default configurations (env vars, command line args, appSettings.json etc).
+		     config.UseDefaultConfigs();
 
-				// Load config from key vault.
-				config.AddKeyVaultSecrets("TenantId",
-										  "SubscriptionId",
-									      "OtherSecretName");
-			})
-			.ConfigureLogging((context, logging) => {
+		     // Load config from key vault.
+		     config.AddKeyVaultSecrets("TenantId", "SubscriptionId", "OtherSecretName");
+		  })
+		 .ConfigureLogging((context, logging) => {
 				
-				// Add logging configuration and loggers.
-				logging.AddConfiguration(context.Configuration)
-					.AddConsole()
-					.AddDebug();
-			})
-			.UseStartup<Startup>();
+		     // Add logging configuration and loggers.
+		     logging.AddConfiguration(context.Configuration).AddConsole().AddDebug();
+		 })
+		 .UseStartup<Startup>();
 	...
 }
 ```
@@ -200,23 +194,22 @@ public class Startup
 	// We can then grab IConfiguration from the constructor, to use in our startup file as follows:
 	public Startup(IConfiguration configuration, ILogger<Startup> logger)
 	{
-		_configuration = configuration;
-		_logger = logger;
+	     _configuration = configuration;
+	     _logger = logger;
 	}
 
 	public void ConfigureServices(IServiceCollection services)
 	{
-		// You could bind directly to a poco class of your choice.
-		_appSettings = _configuration.BindBaseSection<AppSettings>();
+	     // You could bind directly to a poco class of your choice.
+	     _appSettings = _configuration.BindBaseSection<AppSettings>();
 		
-		// Other setting bindings...
-		var bb = BigBrother.CreateDefault(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
-		_configuration.GetSection("Telemetry").Bind(_telemetrySettings);
-		_configuration.GetSection("HttpCors").Bind(_corsSettings);
-		_configuration.GetSection("RefreshingTokenProviderSettings").Bind(_refreshingTokenProviderOptions);
-		_configuration.GetSection("Endpoints").Bind(_endpoints);
+	     // Other setting bindings...
+	     var bb = BigBrother.CreateDefault(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
+	     _configuration.GetSection("Telemetry").Bind(_telemetrySettings);
+	     _configuration.GetSection("HttpCors").Bind(_corsSettings);
+	     _configuration.GetSection("RefreshingTokenProviderSettings").Bind(_refreshingTokenProviderOptions);
+	     _configuration.GetSection("Endpoints").Bind(_endpoints);
 	}
-	
 	...
 }
 ```
