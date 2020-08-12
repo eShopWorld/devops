@@ -35,18 +35,18 @@ Individual secrets can be loaded into configuration, directly from Key Vault in 
 ```csharp
 public class Program
 {
-	...
-	public void ConfigureAppConfiguration(IConfigurationBuilder builder)
-	{
-	    // Load various config sources.
-            builder.UseDefaultConfigs();
+     ...
+     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
+     {
+          // Load various config sources.
+          builder.UseDefaultConfigs();
 
-            // Pass the name of the secrets you wish to load into the configuration builder.
-            builder.AddKeyVaultSecrets("TenantId", 
-			               "SubscriptionId", 
-			               "OtherSecretName");
-	}
-	...
+          // Pass the name of the secrets you wish to load into the configuration builder.
+          builder.AddKeyVaultSecrets("TenantId", 
+		                     "SubscriptionId", 
+		                     "OtherSecretName");
+     }
+     ...
 }
 ```
 
@@ -58,9 +58,9 @@ Otherwise, if the `KEYVAULT_URL` setting cannot be found, the method will fallba
 AppSettings.json
 ```json
 {
-	"KeyVaultInstanceName": "example1",
-	"SomeOtherSetting1": 100,
-	"SomeOtherSetting2": false
+     "KeyVaultInstanceName": "example1",
+     "SomeOtherSetting1": 100,
+     "SomeOtherSetting2": false
 }
 ```
 
@@ -81,15 +81,16 @@ public class Program
            // Overload method 1: Add from key vault loaded in KEYVAULT_URL setting.
            builder.AddKeyVaultSecrets("SomeKey1", "SomeKey2");
 
-	   var kvInstance1 = new Uri("https://instance1.vault.azure.net");
-	   var kvInstance2 = new Uri("https://instance2.vault.azure.net");
+	   var kvUriInstance1 = new Uri("https://instance1.vault.azure.net");
+	   var kvUriInstance2 = new Uri("https://instance2.vault.azure.net");
 
            // Overload method 2: Pass the instance and list of the secrets you wish to load into configuration.
-           builder.AddKeyVaultSecrets(kvInstance1, new [] {
+           builder.AddKeyVaultSecrets(kvUriInstance1, new [] {
 			"TenantId", 
 			"SubscriptionId", 
 			"OtherSecretName" });
-	   builder.AddKeyVaultSecrets(kvInstance2, new [] {
+			
+	   builder.AddKeyVaultSecrets(kvUriInstance2, new [] {
 			"OtherKey1", 
 			"OtherKey2", 
 			"OtherKey3" });
@@ -117,18 +118,18 @@ We can bind the settings to this class using the `BindBaseSection` call as follo
 
 public void ConfigureServices(IServiceCollection services)
 {
-	// Example of binding settings directly to a class (without the "GetSection" call).
-	var appSettings = _configuration.BindBaseSection<AppSettings>();
+     // Example of binding settings directly to a class (without the "GetSection" call).
+     var appSettings = _configuration.BindBaseSection<AppSettings>();
 	
-	// Example of directly using the settings directly after they are loaded.
-	var tenantId = _configuration["TenantId"];
+     // Example of directly using the settings directly after they are loaded.
+     var tenantId = _configuration["TenantId"];
 	
-	var otherSecret = null;
+     var otherSecret = null;
 	
-	if (_configuration.TryGetValue<string>("OtherSecretName"), out otherSecret) 
-	{
-		... do something conditional if the setting exists ...
-	}
+     if (_configuration.TryGetValue<string>("OtherSecretName"), out otherSecret) 
+     {
+	... do something conditional if the setting exists ...
+     }
 }
 ```
 
@@ -166,24 +167,20 @@ public class Program
      // In program, we setup our configuration in the standard microsoft way...
      private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
           WebHost.CreateDefaultBuilder(args)
-		.ConfigureAppConfiguration(config => {
+		 .ConfigureAppConfiguration(config => {
 
 	    	     // Import default configurations (env vars, command line args, appSettings.json etc).
 		     config.UseDefaultConfigs();
 
 		     // Load config from key vault.
-		     config.AddKeyVaultSecrets("TenantId",
-					       "SubscriptionId",
-					       "OtherSecretName");
-		 })
-		.ConfigureLogging((context, logging) => {
+		     config.AddKeyVaultSecrets("TenantId", "SubscriptionId", "OtherSecretName");
+		  })
+		 .ConfigureLogging((context, logging) => {
 				
 		     // Add logging configuration and loggers.
-		     logging.AddConfiguration(context.Configuration)
-			    .AddConsole()
-			    .AddDebug();
-		     })
-		     .UseStartup<Startup>();
+		     logging.AddConfiguration(context.Configuration).AddConsole().AddDebug();
+		 })
+		 .UseStartup<Startup>();
 	...
 }
 ```
