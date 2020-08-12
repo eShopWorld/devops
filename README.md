@@ -101,7 +101,7 @@ public class Program
 
 ## Using the loaded configuration
 
-Take this class:
+Take this POCO class:
 
 ```csharp
 public class AppSettings {
