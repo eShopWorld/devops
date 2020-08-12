@@ -15,6 +15,8 @@ namespace Microsoft.Extensions.Configuration
     {
         /// <summary>
         /// Binds the base section of the config to an actual class of type T.
+        /// Config options with a dash in the name will have the dash dropped so it can bind to the poco class properties,
+        /// e.g. "My-Key-1" will become "MyKey1" so it can bind to a class property named `MyKey1`
         /// </summary>
         /// <param name="config">The configuration.</param>
         /// <returns>IConfigurationSection.</returns>
@@ -24,7 +26,20 @@ namespace Microsoft.Extensions.Configuration
                 throw new ArgumentNullException( nameof(config), "Configuration must be set");
 
             var configBase = new ConfigurationBuilder();
-            configBase.AddInMemoryCollection(config.GetChildren().Where(c => c.Value != null).Select(c => new KeyValuePair<string, string>("base:" + c.Key, c.Value)));
+            var items = new Dictionary<string, string>();
+
+            foreach (var c in config.GetChildren().Where(c => c.Value != null))
+            {
+                var parts = c.Key.Split('-');
+                if (parts.Length > 1)
+                {
+                    var safeKey = $"base:{string.Join(string.Empty, parts)}";
+                    items.Add(safeKey, c.Value);
+                }
+                items.Add($"base:{c.Key}", c.Value);
+            }
+
+            configBase.AddInMemoryCollection(items);
             return configBase.Build().GetSection("base").Get<T>();
         }
 

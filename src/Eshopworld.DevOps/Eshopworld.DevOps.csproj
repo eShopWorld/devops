@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.3</Version>
-    <PackageReleaseNotes>Added Key Vault extension to load secrets individually.</PackageReleaseNotes>
+    <Version>5.1.4</Version>
+    <PackageReleaseNotes>Updated BindBaseSection so that it can handle keys with dashes.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
