@@ -88,7 +88,8 @@ public class Program
            builder.AddKeyVaultSecrets(kvUriInstance1, new [] {
 			"TenantId", 
 			"SubscriptionId", 
-			"OtherSecretName" });
+			"OtherSecretName",
+			"connectionstrings--servicebus" });
 			
 	   builder.AddKeyVaultSecrets(kvUriInstance2, new [] {
 			"OtherKey1", 
@@ -108,6 +109,11 @@ public class AppSettings {
      public string TenantId { get; set; }
      public string SubscriptionId { get; set; }
      public string OtherSecretName { get; set; }
+	 public ConnStrings ConnectionStrings { get; set; }
+}
+public class ConnStrings {
+	public string ServiceBus { get; set; }
+	public string Cosmos { get; set; }
 }
 ```
 
@@ -173,7 +179,11 @@ public class Program
 		     config.UseDefaultConfigs();
 
 		     // Load config from key vault.
-		     config.AddKeyVaultSecrets("TenantId", "SubscriptionId", "OtherSecretName");
+		     config.AddKeyVaultSecrets("TenantId",
+			                           "SubscriptionId",
+									   "OtherSecretName",
+									   "connectionstrings--cosmos",
+									   "connectionstrings--servicebus");
 		  })
 		 .ConfigureLogging((context, logging) => {
 				

@@ -17,7 +17,9 @@ public class ConfigBuilderUnitTests
         configBuilder.AddValue("TestKey1", "testVal1")
                      .AddValue("TestKey2", "testVal2")
                      .AddValue("Test-Key-3", "testVal3")
-                     .AddValue("Test--Key-4", "testVal4");
+                     .AddValue("Test-Key-4", "testVal4")
+                     .AddValue("SubProp--SubKey1", "testVal1")
+                     .AddValue("Sub-Prop--Sub-Key2", "testVal2");
         var boundConfig = configBuilder.Build().BindBaseSection<TestSettings>();
 
         // Assert
@@ -25,6 +27,9 @@ public class ConfigBuilderUnitTests
         boundConfig.TestKey2.Should().Be("testVal2");
         boundConfig.TestKey3.Should().Be("testVal3");
         boundConfig.TestKey4.Should().Be("testVal4");
+        boundConfig.SubProp.Should().NotBeNull();
+        boundConfig.SubProp.SubKey1.Should().Be("testVal1");
+        boundConfig.SubProp.SubKey2.Should().Be("testVal2");
     }
 
     /// <summary>Ensure add value, adds a config setting as expected.</summary>
@@ -125,5 +130,12 @@ public class ConfigBuilderUnitTests
         public string TestKey2 { get; set; }
         public string TestKey3 { get; set; }
         public string TestKey4 { get; set; }
+        public SubClass SubProp { get; set; }
+    }
+
+    private class SubClass
+    {
+        public string SubKey1 { get; set; }
+        public string SubKey2 { get; set; }
     }
 }

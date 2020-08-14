@@ -30,13 +30,17 @@ namespace Microsoft.Extensions.Configuration
 
             foreach (var c in config.GetChildren().Where(c => c.Value != null))
             {
-                var parts = c.Key.Split('-');
+                // We replace "--" with ":" so as that is how we denote our sub items in key vault, it is therefore converted
+                // into the colon so it can be split appropriately in the standard way.
+                var key = c.Key.Replace("--", ":", StringComparison.InvariantCulture);
+
+                var parts = key.Split('-');
                 if (parts.Length > 1)
                 {
                     var safeKey = $"base:{string.Join(string.Empty, parts)}";
                     items.Add(safeKey, c.Value);
                 }
-                items.Add($"base:{c.Key}", c.Value);
+                items.Add($"base:{key}", c.Value);
             }
 
             configBase.AddInMemoryCollection(items);
