@@ -157,7 +157,7 @@ public class CustomSettings {
 }
 ```
 
-We can bind two of the properties of this class using the `BindSection` call as follows.
+We can bind two of the properties of this class to Key Vault secrets using the `BindSection` call as follows.
 The third will be taken directly from the specified section.
 
 ```csharp
