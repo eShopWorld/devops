@@ -141,7 +141,7 @@ public void ConfigureServices(IServiceCollection services)
 
 It's worth noting, if you have a Key Vault setting called with dashes in the name, ex "My-Key-1", it can bind to a Poco class property called "MyKey1".  The `BindBaseSection` method will make a version of the config setting that has not got the dashes.
 
-## Bind to an class specifying Key Vault mappings
+## Bind to a class specifying Key Vault mappings
 
 Take this POCO class:
 
@@ -190,6 +190,8 @@ public void ConfigureServices(IServiceCollection services)
 				new PropertySecretMapping<CustomSettings>("db-connectionstring", c => c.DbConnectionString ));	
 }
 ```
+
+This approach does not require initial Key Vault loading using `AddKeyVaultSecrets`
 
 
 ## Full example of code above using WebHostBuilder
