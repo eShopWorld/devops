@@ -187,7 +187,7 @@ public void ConfigureServices(IServiceCollection services)
 {
      // Example of binding settings directly to a class (without the "GetSection" call).
      var appSettings = _configuration.BindSection<CustomSettings>("MySection",
-				new PropertySecretMapping<CustomSettings>("db-connectionstring", c => c.ClientSecret));	
+				new PropertySecretMapping<CustomSettings>("db-connectionstring", c => c.DbConnectionString ));	
 }
 ```
 
