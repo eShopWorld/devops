@@ -1,14 +1,9 @@
-﻿using System;
-using System.Linq.Expressions;
-
-namespace Eshopworld.DevOps.KeyVault
+﻿namespace Eshopworld.DevOps.KeyVault
 {
     /// <summary>
     /// Mapping data for mapping Key Vault secrets to properties
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PropertySecretMapping<T>
-        where T : class
+    public class PropertySecretMapping
     {
         /// <summary>
         /// Key Vault secret name
@@ -20,26 +15,13 @@ namespace Eshopworld.DevOps.KeyVault
         /// </summary>
         public string PropertyName { get; }
 
-        /// <summary>
-        /// Property mapping constructor
-        /// </summary>
-        /// <param name="secretName">Key Vault secret name</param>
-        /// <param name="propertySelector">Selector for property to map to</param>
-        public PropertySecretMapping(string secretName, Expression<Func<T, string>> propertySelector)
-        {
-            SecretName = secretName;
-
-            var memberExpression = propertySelector.Body as MemberExpression;
-
-            PropertyName = memberExpression?.Member.Name;
-        }
 
         /// <summary>
         /// Property mapping constructor
         /// </summary>
-        /// <param name="secretName">Key Vault secret name</param>
         /// <param name="propertyName">Name of property to map to</param>
-        internal PropertySecretMapping(string secretName, string propertyName)
+        /// <param name="secretName">Key Vault secret name</param>
+        internal PropertySecretMapping(string propertyName, string secretName)
         {
             SecretName = secretName;
             PropertyName = propertyName;

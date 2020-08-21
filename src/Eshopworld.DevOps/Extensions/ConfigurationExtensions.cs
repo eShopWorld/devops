@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.Configuration
         public static T BindSection<T>(
             this IConfiguration configuration,
             string key = null,
-            params PropertySecretMapping<T>[] additionalPropertyMappings)
+            Action<PropertyMappingBuilder<T>> propertyMapping = null)
             where T : class, new()
         {
             var section = new T();
@@ -35,14 +35,30 @@ namespace Microsoft.Extensions.Configuration
             if (!string.IsNullOrWhiteSpace(key))
                 configuration.GetSection(key).Bind(section);
 
+            var additionalPropertyMappings = GetAdditionalPropertyMappings(propertyMapping);
+
             LoadKeyVaultSecrets(section, additionalPropertyMappings);
 
             return section;
         }
 
+        private static PropertySecretMapping[] GetAdditionalPropertyMappings<T>(Action<PropertyMappingBuilder<T>> propertyMappingAction)
+            where T : class, new()
+        {
+            if (propertyMappingAction == null)
+            {
+                return Array.Empty<PropertySecretMapping>();
+            }
+
+            var builder = new PropertyMappingBuilder<T>();
+                propertyMappingAction.Invoke(builder);
+            
+            return builder.Mappings.ToArray();
+        }
+
         private static void LoadKeyVaultSecrets<T>(
             T section,
-            PropertySecretMapping<T>[] additionalPropertyMappings)
+            PropertySecretMapping[] additionalPropertyMappings)
             where T : class, new()
         {
             var propertyMappings = GetKeyVaultPropertyMappings<T>();
@@ -62,7 +78,7 @@ namespace Microsoft.Extensions.Configuration
         private static void SetSecretValues<T>(
             this IConfigurationBuilder configurationBase,
             T section,
-            IEnumerable<PropertySecretMapping<T>> propertyMappings)
+            IEnumerable<PropertySecretMapping> propertyMappings)
             where T : class, new()
         {
             var sectionType = typeof(T);
@@ -74,7 +90,7 @@ namespace Microsoft.Extensions.Configuration
             }
         }
 
-        private static IEnumerable<PropertySecretMapping<T>> GetKeyVaultPropertyMappings<T>()
+        private static IEnumerable<PropertySecretMapping> GetKeyVaultPropertyMappings<T>()
             where T : class, new()
         {
             var props = typeof(T).GetProperties();
@@ -85,7 +101,7 @@ namespace Microsoft.Extensions.Configuration
                 {
                     if (attr is KeyVaultSecretNameAttribute secretNameAttribute)
                     {
-                        yield return new PropertySecretMapping<T>(prop.Name, secretNameAttribute.Name);
+                        yield return new PropertySecretMapping(prop.Name, secretNameAttribute.Name);
                     }
                 }
             }
