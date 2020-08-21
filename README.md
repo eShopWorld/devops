@@ -141,6 +141,57 @@ public void ConfigureServices(IServiceCollection services)
 
 It's worth noting, if you have a Key Vault setting called with dashes in the name, ex "My-Key-1", it can bind to a Poco class property called "MyKey1".  The `BindBaseSection` method will make a version of the config setting that has not got the dashes.
 
+## Bind to an class specifying Key Vault mappings
+
+Take this POCO class:
+
+```csharp
+public class CustomSettings {
+	[KeyVaultSecretName("my-kv-key")]
+	public string CosmosKey { get; set; }
+	
+	[KeyVaultSecretName("my-kv-url")]
+	public string CosmosUrl { get; set; }
+
+	public string DbConnectionString { get; set; }
+}
+```
+
+We can bind two of the properties of this class using the `BindSection` call as follows.
+The third will be taken directly from the specified section.
+
+```csharp
+// Taken from Startup.cs after the ConfigureAppConfiguration above has been run.
+
+public void ConfigureServices(IServiceCollection services)
+{
+     // Example of binding settings directly to a class (without the "GetSection" call).
+     var appSettings = _configuration.BindSection<CustomSettings>("MySection");	
+}
+```
+
+If the section is not specified then it will attempt to load from KeyVault only
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+     // Example of binding settings directly to a class (without the "GetSection" call).
+     var appSettings = _configuration.BindSection<CustomSettings>();	
+}
+```
+
+If you do not have control of the POCO that is being bound to, then additional mappings can be specified
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+     // Example of binding settings directly to a class (without the "GetSection" call).
+     var appSettings = _configuration.BindSection<CustomSettings>("MySection",
+				new PropertySecretMapping<CustomSettings>("db-connectionstring", c => c.ClientSecret));	
+}
+```
+
+
 ## Full example of code above using WebHostBuilder
 
 Example of using with a WebHostBuilder when bootstrapping a Web Application.
