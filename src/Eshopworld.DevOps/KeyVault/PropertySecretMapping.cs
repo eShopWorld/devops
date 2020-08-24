@@ -6,7 +6,7 @@ namespace Eshopworld.DevOps.KeyVault
     /// <summary>
     /// Mapping data for mapping Key Vault secrets to properties
     /// </summary>
-    public class PropertySecretMapping
+    internal class PropertySecretMapping
     {
         /// <summary>
         /// Key Vault secret name
