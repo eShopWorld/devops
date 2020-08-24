@@ -8,7 +8,7 @@ namespace Eshopworld.DevOps.KeyVault
     public class PropertyMappingBuilder<T>
         where T : class
     {
-        public IEnumerable<PropertySecretMapping> Mappings => _mappings;
+        internal IEnumerable<PropertySecretMapping> Mappings => _mappings;
 
         private readonly List<PropertySecretMapping> _mappings = new List<PropertySecretMapping>();
 
