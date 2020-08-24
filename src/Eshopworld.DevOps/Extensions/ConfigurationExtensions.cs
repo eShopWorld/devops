@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.Configuration
         /// <typeparam name="T">Class type of object to bind to</typeparam>
         /// <param name="configuration">The configuration to get value from.</param>
         /// <param name="key">The unique key which holds the wanted value.</param>
-        /// <param name="additionalPropertyMappings">Additional secret mappings to use. Use this if you don't control the type you are binding to.</param>
+        /// <param name="propertyMapping">Additional secret mappings to use. Use this if you don't control the type you are binding to.</param>
         /// <returns>Returns loaded configuration data</returns>
         public static T BindSection<T>(
             this IConfiguration configuration,
@@ -30,6 +30,9 @@ namespace Microsoft.Extensions.Configuration
             Action<PropertyMappingBuilder<T>> propertyMapping = null)
             where T : class, new()
         {
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
+
             var section = new T();
 
             if (!string.IsNullOrWhiteSpace(key))
@@ -81,27 +84,25 @@ namespace Microsoft.Extensions.Configuration
             IEnumerable<PropertySecretMapping> propertyMappings)
             where T : class, new()
         {
-            var sectionType = typeof(T);
             foreach (var mapping in propertyMappings)
             {
                 var secretValue = configurationBase.GetValue<string>(mapping.SecretName);
-                var propertyInfo = sectionType.GetProperty(mapping.PropertyName);
-                propertyInfo?.SetValue(section, secretValue);
+                mapping.PropertyInfo?.SetValue(section, secretValue);
             }
         }
 
         private static IEnumerable<PropertySecretMapping> GetKeyVaultPropertyMappings<T>()
             where T : class, new()
         {
-            var props = typeof(T).GetProperties();
-            foreach (var prop in props)
+            var properties = typeof(T).GetProperties();
+            foreach (var propertyInfo in properties)
             {
-                var attrs = prop.GetCustomAttributes(true);
-                foreach (var attr in attrs)
+                var attributes = propertyInfo.GetCustomAttributes(true);
+                foreach (var attribute in attributes)
                 {
-                    if (attr is KeyVaultSecretNameAttribute secretNameAttribute)
+                    if (attribute is KeyVaultSecretNameAttribute secretNameAttribute)
                     {
-                        yield return new PropertySecretMapping(prop.Name, secretNameAttribute.Name);
+                        yield return new PropertySecretMapping(propertyInfo, secretNameAttribute.Name);
                     }
                 }
             }
