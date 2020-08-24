@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.5</Version>
-    <PackageReleaseNotes>Updated BindBaseSection so that it can handle keys with dashes.</PackageReleaseNotes>
+    <Version>5.1.6</Version>
+    <PackageReleaseNotes>Added BindSection for binding POCO properties to KeyVault secrets</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>

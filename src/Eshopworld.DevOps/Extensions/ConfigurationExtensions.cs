@@ -5,6 +5,7 @@ namespace Microsoft.Extensions.Configuration
     using Azure.KeyVault.Models;
     using Azure.Services.AppAuthentication;
     using Eshopworld.DevOps;
+    using Eshopworld.DevOps.KeyVault;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,6 +14,100 @@ namespace Microsoft.Extensions.Configuration
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
+        /// <summary>
+        /// Binds a configuration section to an object.
+        /// If the properties are decorated with the KeyVaultSecretName attribute, or key vault secret mapping are manually specified
+        /// then it will load the specified secrets and set them on the property
+        /// </summary>
+        /// <typeparam name="T">Class type of object to bind to</typeparam>
+        /// <param name="configuration">The configuration to get value from.</param>
+        /// <param name="key">The unique key which holds the wanted value.</param>
+        /// <param name="propertyMapping">Additional secret mappings to use. Use this if you don't control the type you are binding to.</param>
+        /// <returns>Returns loaded configuration data</returns>
+        public static T BindSection<T>(
+            this IConfiguration configuration,
+            string key = null,
+            Action<PropertyMappingBuilder<T>> propertyMapping = null)
+            where T : class, new()
+        {
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
+
+            var section = new T();
+
+            if (!string.IsNullOrWhiteSpace(key))
+                configuration.GetSection(key).Bind(section);
+
+            var additionalPropertyMappings = GetAdditionalPropertyMappings(propertyMapping);
+
+            LoadKeyVaultSecrets(section, additionalPropertyMappings);
+
+            return section;
+        }
+
+        private static PropertySecretMapping[] GetAdditionalPropertyMappings<T>(Action<PropertyMappingBuilder<T>> propertyMappingAction)
+            where T : class, new()
+        {
+            if (propertyMappingAction == null)
+            {
+                return Array.Empty<PropertySecretMapping>();
+            }
+
+            var builder = new PropertyMappingBuilder<T>();
+                propertyMappingAction.Invoke(builder);
+            
+            return builder.Mappings.ToArray();
+        }
+
+        private static void LoadKeyVaultSecrets<T>(
+            T section,
+            PropertySecretMapping[] additionalPropertyMappings)
+            where T : class, new()
+        {
+            var propertyMappings = GetKeyVaultPropertyMappings<T>();
+
+            if (!propertyMappings.Any() && !additionalPropertyMappings.Any())
+                return;
+
+            var allProperSecretMappings = propertyMappings.Union(additionalPropertyMappings);
+
+            var configBase = new ConfigurationBuilder();
+            configBase
+                .UseDefaultConfigs()
+                .AddKeyVaultSecrets(allProperSecretMappings.Select(n => n.SecretName).ToArray())
+                .SetSecretValues(section, allProperSecretMappings);
+        }
+
+        private static void SetSecretValues<T>(
+            this IConfigurationBuilder configurationBase,
+            T section,
+            IEnumerable<PropertySecretMapping> propertyMappings)
+            where T : class, new()
+        {
+            foreach (var mapping in propertyMappings)
+            {
+                var secretValue = configurationBase.GetValue<string>(mapping.SecretName);
+                mapping.PropertyInfo?.SetValue(section, secretValue);
+            }
+        }
+
+        private static IEnumerable<PropertySecretMapping> GetKeyVaultPropertyMappings<T>()
+            where T : class, new()
+        {
+            var properties = typeof(T).GetProperties();
+            foreach (var propertyInfo in properties)
+            {
+                var attributes = propertyInfo.GetCustomAttributes(true);
+                foreach (var attribute in attributes)
+                {
+                    if (attribute is KeyVaultSecretNameAttribute secretNameAttribute)
+                    {
+                        yield return new PropertySecretMapping(propertyInfo, secretNameAttribute.Name);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Binds the base section of the config to an actual class of type T.
         /// Config options with a dash in the name will have the dash dropped so it can bind to the poco class properties,

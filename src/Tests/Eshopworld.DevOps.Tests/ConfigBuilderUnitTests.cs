@@ -2,6 +2,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using Eshopworld.DevOps.KeyVault;
 using Xunit;
 
 public class ConfigBuilderUnitTests
@@ -30,6 +31,29 @@ public class ConfigBuilderUnitTests
         boundConfig.SubProp.Should().NotBeNull();
         boundConfig.SubProp.SubKey1.Should().Be("testVal1");
         boundConfig.SubProp.SubKey2.Should().Be("testVal2");
+    }
+
+    /// <summary>Ensure BindBaseSection on the IConfigurationBuilder, binds root appsettings to a model as expected.</summary>
+    [Fact, IsUnit]
+    public void Test_Config_BindSection_WithNoKVMapping()
+    {
+        // Arrange
+        var configBuilder = new ConfigurationBuilder();
+        configBuilder
+            .AddValue("KeyVaultInstanceName", "kvinstance")
+            .AddValue("Section:TestKey1", "testVal1")
+            .AddValue("Section:TestKey2", "testVal2")
+            .AddValue("Section:TestKey3", "testVal3")
+            .AddValue("Section:TestKey4", "testVal4");
+
+        // Act
+        var boundConfig = configBuilder.Build().BindSection<TestSettings>("Section");
+
+        // Assert
+        boundConfig.TestKey1.Should().Be("testVal1");
+        boundConfig.TestKey2.Should().Be("testVal2");
+        boundConfig.TestKey3.Should().Be("testVal3");
+        boundConfig.TestKey4.Should().Be("testVal4");
     }
 
     /// <summary>Ensure add value, adds a config setting as expected.</summary>
@@ -124,6 +148,22 @@ public class ConfigBuilderUnitTests
         value.Should().NotBeNullOrEmpty();
     }
 
+    private class TestKvSettings
+    {
+        public string TestKey1 { get; set; }
+        public string TestKey2 { get; set; }
+        [KeyVaultSecretName("kv-name-3")]
+        public string TestKey3 { get; set; }
+        [KeyVaultSecretName("kv-name-4")]
+        public string TestKey4 { get; set; }
+    }
+
+    private class SubClass
+    {
+        public string SubKey1 { get; set; }
+        public string SubKey2 { get; set; }
+    }
+
     private class TestSettings
     {
         public string TestKey1 { get; set; }
@@ -131,11 +171,5 @@ public class ConfigBuilderUnitTests
         public string TestKey3 { get; set; }
         public string TestKey4 { get; set; }
         public SubClass SubProp { get; set; }
-    }
-
-    private class SubClass
-    {
-        public string SubKey1 { get; set; }
-        public string SubKey2 { get; set; }
     }
 }
