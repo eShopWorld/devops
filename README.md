@@ -64,7 +64,6 @@ AppSettings.json
 }
 ```
 
-
 ## Load individual secrets from multiple key vaults
 
 If you require settings to be loaded from multiple Key Vaults, it can be done in the following way:
@@ -99,6 +98,32 @@ public class Program
     ...
 }
 ```
+
+## Load secrets from Key Vault and map secret names to other config value names
+
+For convenience, you can choose to map your Key Vault secrets to other config names by passing an array of Key Value pairs (key is secret name, value is mapped name) instead of array of string (secret names), as follows:
+
+```csharp
+public class Program
+{
+     ...
+     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
+     {
+          // Load various config sources.
+          builder.UseDefaultConfigs();
+
+		  var kvUrl = builder.GetValue<string>("KEYVAULT_URL");
+
+          // Pass the name of the secrets you wish to load into the configuration builder.
+          builder.AddKeyVaultSecrets(new Uri(kvUrl), 
+				new KeyValuePair<string, string>("TenandId","MyClass:MyTenantId"),
+				new KeyValuePair<string, string>("SubscriptionId","MyClass:SubClass1:MySubId"),
+				new KeyValuePair<string, string>("OtherSecretName","OtherSecretName"));
+     }
+     ...
+}
+```
+
 
 ## Using the loaded configuration
 

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.6</Version>
-    <PackageReleaseNotes>Added BindSection for binding POCO properties to KeyVault secrets</PackageReleaseNotes>
+    <Version>5.1.7</Version>
+    <PackageReleaseNotes>Ability to map key vault secret names to any other given name.</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>

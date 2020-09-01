@@ -52,7 +52,7 @@ public class ConfigBuilderIntegrationTests
         IConfigurationBuilder builder = new ConfigurationBuilder();
 
         // Act
-        Action loadSettings = () => { builder.AddKeyVaultSecrets(null, new List<string> {"key1", "key2"}); };
+        Action loadSettings = () => { builder.AddKeyVaultSecrets(null, new [] {"key1", "key2"}); };
 
         // Assert
         loadSettings.Should().Throw<ArgumentNullException>();
@@ -94,6 +94,26 @@ public class ConfigBuilderIntegrationTests
 
         // Assert
         config.TryGetValue<object>("keyVaultItem", out var result).Should().BeTrue();
+        result.Should().NotBeNull();
+        result.Should().Be("keyVaultItemValue");
+    }
+
+    /// <summary>
+    /// Verify a real key in keyvault is added as expected and that it can be mapped to a config name that is different.
+    /// </summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_MapConfigName()
+    {
+        // Arrange - Principle needs "Set" permissions to run this.
+        IConfigurationBuilder builder = new ConfigurationBuilder();
+
+        // Act
+        builder.UseDefaultConfigs();
+        builder.AddKeyVaultSecrets("keyVaultItem", "MappedName");
+        var config = builder.Build();
+
+        // Assert
+        config.TryGetValue<object>("MappedName", out var result).Should().BeTrue();
         result.Should().NotBeNull();
         result.Should().Be("keyVaultItemValue");
     }
