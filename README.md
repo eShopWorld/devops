@@ -101,7 +101,7 @@ public class Program
 
 ## Load secrets from Key Vault and map secret names to other config value names
 
-For convenience, you can choose to map your Key Vault secrets to other config names by passing an array of Key Value pairs (key is secret name, value is mapped name) instead of array of string (secret names), as follows:
+For convenience, you can choose to map your Key Vault secrets to other config names by passing a Dictionary (key is secret name, value is mapped name) instead of array of string (secret names), as follows:
 
 ```csharp
 public class Program
@@ -115,10 +115,11 @@ public class Program
 		  var kvUrl = builder.GetValue<string>("KEYVAULT_URL");
 
           // Pass the name of the secrets you wish to load into the configuration builder.
-          builder.AddKeyVaultSecrets(new Uri(kvUrl), 
-				new KeyValuePair<string, string>("TenandId","MyClass:MyTenantId"),
-				new KeyValuePair<string, string>("SubscriptionId","MyClass:SubClass1:MySubId"),
-				new KeyValuePair<string, string>("OtherSecretName","OtherSecretName"));
+          builder.AddKeyVaultSecrets(new Uri(kvUrl), new Dictionary<string, string> {
+				{ "TenandId","MyClass:MyTenantId" },
+				{ "SubscriptionId","MyClass:SubClass1:MySubId" },
+				{ "OtherSecretName","OtherSecretName" }
+			});
      }
      ...
 }

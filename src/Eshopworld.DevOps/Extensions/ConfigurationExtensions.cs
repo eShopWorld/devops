@@ -224,7 +224,7 @@ namespace Microsoft.Extensions.Configuration
             if (keys == null || keys.Length == 0)
                 return builder;
 
-            var kvs = keys.Select(k => new KeyValuePair<string, string>(k, k)).ToArray();
+            var kvs = keys.ToDictionary(key => key, val => val);
             return AddKeyVaultSecrets(builder, vaultUrl, kvs, suppressKeyNotFoundError);
         }
 
@@ -234,18 +234,18 @@ namespace Microsoft.Extensions.Configuration
         /// </summary>
         /// <param name="builder">The builder.</param>
         /// <param name="vaultUrl">Key vault url to connect to.</param>
-        /// <param name="keys">The list of keys values pairs to load and map to.</param>
+        /// <param name="keys">The dictionary of keys values to load (key) and map to (value).</param>
         /// <param name="suppressKeyNotFoundError">If [true], when a key is missing an invalid operation exception will be thrown. If [false], the
         /// error will be suppressed and it will just not add the key to the returned collection.</param>
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="ArgumentException">Vault url must be set</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, KeyValuePair<string,string>[] keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string,string> keys, bool suppressKeyNotFoundError = true)
         {
             if (vaultUrl == null)
                 throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
 
-            if (keys == null || keys.Length == 0)
+            if (keys == null || keys.Count == 0)
                 return builder;
 
             try
