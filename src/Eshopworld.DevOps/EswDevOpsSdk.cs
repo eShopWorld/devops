@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Azure.Identity;
 using JetBrains.Annotations;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace Eshopworld.DevOps
 {
@@ -73,15 +71,15 @@ namespace Eshopworld.DevOps
             var configBuilder = CreateInitialConfigurationBuilder()
                 .AddEnvironmentVariables();
             var config = configBuilder.Build();
-            var vaultUrl = config[KeyVaultUrlKey];
-            if (string.IsNullOrEmpty(vaultUrl))
+
+            var isVaultUriValid = Uri.TryCreate(config[KeyVaultUrlKey], UriKind.Absolute, out Uri vaultUri);
+            if (!isVaultUriValid)
                 return config;
 
             var kvConfigBuilder = CreateInitialConfigurationBuilder()
-                .AddAzureKeyVault(vaultUrl,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
+                .AddAzureKeyVault(vaultUri, new DefaultAzureCredential())
                 .AddEnvironmentVariables();
+
             return kvConfigBuilder.Build();
 
             IConfigurationBuilder CreateInitialConfigurationBuilder()

@@ -1,17 +1,15 @@
-﻿// ReSharper disable once CheckNamespace
+﻿using Eshopworld.DevOps;
+using Eshopworld.DevOps.KeyVault;
+using Azure;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.Configuration
 {
-    using Azure.KeyVault;
-    using Azure.KeyVault.Models;
-    using Azure.Services.AppAuthentication;
-    using Eshopworld.DevOps;
-    using Eshopworld.DevOps.KeyVault;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
@@ -285,7 +283,7 @@ namespace Microsoft.Extensions.Configuration
 
             try
             {
-                using var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
+                var secretClient = new SecretClient(vaultUrl, new DefaultAzureCredential());
                 var secrets = new List<KeyValuePair<string, string>>();
 
                 // Gather secrets from Key Vault, one by one.
@@ -293,11 +291,11 @@ namespace Microsoft.Extensions.Configuration
                 {
                     try
                     {
-                        var secret = vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false).GetAwaiter().GetResult();
-                        secrets.Add(new KeyValuePair<string, string>(pair.Value, secret.Value));
+                        var secret = secretClient.GetSecretAsync(pair.Key).ConfigureAwait(false).GetAwaiter().GetResult();
+                        secrets.Add(new KeyValuePair<string, string>(pair.Value, secret?.Value?.Value));
                     }
-                    catch (KeyVaultErrorException e)
-                        when (e.Response.StatusCode == HttpStatusCode.NotFound && suppressKeyNotFoundError)
+                    catch (RequestFailedException e)
+                        when (e.Status == 404 && suppressKeyNotFoundError)
                     {
                         // Do nothing if it fails to find the value.
                         Console.WriteLine($"Failed to find key vault setting: {pair}, exception: {e.Message}");
