@@ -112,14 +112,13 @@ public class Program
           // Load various config sources.
           builder.UseDefaultConfigs();
 
-		  var kvUrl = builder.GetValue<string>("KEYVAULT_URL");
-
           // Pass the name of the secrets you wish to load into the configuration builder.
-          builder.AddKeyVaultSecrets(new Uri(kvUrl), new Dictionary<string, string> {
+          builder.AddKeyVaultSecrets(new Dictionary<string, string> {
 				{ "TenandId","MyClass:MyTenantId" },
 				{ "SubscriptionId","MyClass:SubClass1:MySubId" },
 				{ "OtherSecretName","OtherSecretName" }
 			});
+			// Optional overload - you can pass the specific KV url if needed.
      }
      ...
 }
