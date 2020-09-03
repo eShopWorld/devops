@@ -1,12 +1,9 @@
 ﻿using Eshopworld.DevOps;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 public class ConfigBuilderIntegrationTests

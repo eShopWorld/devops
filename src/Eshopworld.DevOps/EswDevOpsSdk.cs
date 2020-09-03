@@ -71,12 +71,13 @@ namespace Eshopworld.DevOps
             var configBuilder = CreateInitialConfigurationBuilder()
                 .AddEnvironmentVariables();
             var config = configBuilder.Build();
-            var vaultUrl = config[KeyVaultUrlKey];
-            if (string.IsNullOrEmpty(vaultUrl))
+
+            var isVaultUriValid = Uri.TryCreate(config[KeyVaultUrlKey], UriKind.Absolute, out Uri vaultUri);
+            if (!isVaultUriValid)
                 return config;
 
             var kvConfigBuilder = CreateInitialConfigurationBuilder()
-                .AddAzureKeyVault(new Uri(vaultUrl), new DefaultAzureCredential())
+                .AddAzureKeyVault(vaultUri, new DefaultAzureCredential())
                 .AddEnvironmentVariables();
 
             return kvConfigBuilder.Build();
