@@ -109,8 +109,10 @@ public class ConfigBuilderIntegrationTests
 
         // Act
         builder.UseDefaultConfigs();
-        var url = builder.GetValue<string>("KEYVAULT_URL");
-        builder.AddKeyVaultSecrets(new Uri(url), new Dictionary<string, string> { { "keyVaultItem", "MappedName"} });
+        builder.AddKeyVaultSecrets(new Dictionary<string, string>
+        {
+            { "keyVaultItem", "MappedName"}
+        });
         var config = builder.Build();
 
         // Assert
