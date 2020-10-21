@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.7</Version>
-    <PackageReleaseNotes>Ability to map key vault secret names to any other given name.</PackageReleaseNotes>
+    <Version>5.1.8</Version>
+    <PackageReleaseNotes>Added package Microsoft.Azure.Services.AppAuthentication 1.6.0 to fix an issue with accessing the Keyvault</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>
