@@ -175,6 +175,31 @@ namespace Microsoft.Extensions.Configuration
             return builder;
         }
 
+        /// <summary>
+        /// Uses the desired default configurations.
+        /// Builds configuration sources in the following order:
+        /// - 1. Environment variables
+        /// - 2. Command line arguments
+        /// - 3. Json files respection the order
+        /// Note:
+        /// - Each configuration json file WILL be added to configuration builder respecting the given sort order.
+        /// </summary>
+        /// <param name="builder">The configuration builder to bind to.</param>
+        /// <param name="appSettingsFiles">The application settings files paths.</param>
+        /// <returns>The configuration builder after config has been added.</returns>
+        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string[] appSettingsFiles)
+        {
+            builder.AddEnvironmentVariables()
+                   .AddCommandLine(Environment.GetCommandLineArgs());
+            
+            foreach (var file in appSettingsFiles ?? throw new ArgumentNullException(nameof(appSettingsFiles)))
+            {
+                builder.AddJsonFile(file, true);
+            }
+
+            return builder;
+        }
+
         /// <summary>Adds the key vault secrets specified.  Uses Msi auth and gets the Key Vault url from `EswDevOpsSdk.KeyVaultUrlKey` setting.  If url is not set, it falls back to "KeyVaultInstanceName" setting as backup.</summary>
         /// <param name="builder">The builder to extend.</param>
         /// <param name="params">The list of keys to load.</param>
