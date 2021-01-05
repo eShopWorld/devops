@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.8</Version>
-    <PackageReleaseNotes>Added package Microsoft.Azure.Services.AppAuthentication 1.6.0 to fix an issue with accessing the Keyvault</PackageReleaseNotes>
+    <Version>5.1.9</Version>
+    <PackageReleaseNotes>Added an overload for multiple files options to UseDefaultConfigs in order to allow client apps fully control the config files they are using.</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>
