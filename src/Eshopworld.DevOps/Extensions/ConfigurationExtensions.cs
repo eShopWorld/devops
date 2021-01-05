@@ -158,9 +158,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>The configuration builder after config has been added.</returns>
         public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string environment = null)
         {
-            builder.AddEnvironmentVariables()
-                    .AddCommandLine(Environment.GetCommandLineArgs())
-                    .AddJsonFile(appSettingsPath, true);
+            UseDefaultConfigs(builder, new[] { appSettingsPath });
 
             var env = EswDevOpsSdk.GetEnvironmentName();
 
@@ -170,6 +168,31 @@ namespace Microsoft.Extensions.Configuration
             if (!string.IsNullOrEmpty(env))
             {
                 builder.AddJsonFile($"appsettings.{env}.json", true, true);
+            }
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Uses the desired default configurations.
+        /// Builds configuration sources in the following order:
+        /// - 1. Environment variables
+        /// - 2. Command line arguments
+        /// - 3. Json files respection the order
+        /// Note:
+        /// - Each configuration json file WILL be added to configuration builder respecting the given sort order.
+        /// </summary>
+        /// <param name="builder">The configuration builder to bind to.</param>
+        /// <param name="appSettingsFiles">The application settings files paths.</param>
+        /// <returns>The configuration builder after config has been added.</returns>
+        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string[] appSettingsFiles)
+        {
+            builder.AddEnvironmentVariables()
+                   .AddCommandLine(Environment.GetCommandLineArgs());
+            
+            foreach (var file in appSettingsFiles ?? throw new ArgumentNullException(nameof(appSettingsFiles)))
+            {
+                builder.AddJsonFile(file, true);
             }
 
             return builder;

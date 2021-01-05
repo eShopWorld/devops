@@ -1,12 +1,9 @@
 ﻿using Eshopworld.DevOps;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 public class ConfigBuilderIntegrationTests
@@ -27,6 +24,29 @@ public class ConfigBuilderIntegrationTests
         settings.Should().NotBeNull();
         settings.TestKey1.Should().NotBeNullOrEmpty(); // loaded from appsettings
         settings.TestKey1.Should().Be("testVal1");
+    }
+
+    /// <summary>Ensure using default configs loads all expected values from various sources (in the expected order).</summary>
+    [Fact, IsIntegration]
+    public void Test_ConfigBuilder_UseDefaultConfigs_for_multiple_files()
+    {
+        // Arrange
+        var configFiles = new[]
+        {
+            "appsettings.json",
+            "appSettings.ORDER.json",
+            "appsettings.TEST.json"
+        };
+
+        // Act
+        IConfiguration configuration = new ConfigurationBuilder()
+            .UseDefaultConfigs(configFiles)
+            .Build();
+
+        // Assert
+        configuration.TryGetValue<string>("Option1", out var result).Should().BeTrue();
+        result.Should().NotBeNull();
+        result.Should().Be("option1-from-test");
     }
 
     /// <summary>Verify invalid operation exception when wrong key vault is set.</summary>
@@ -52,7 +72,7 @@ public class ConfigBuilderIntegrationTests
         IConfigurationBuilder builder = new ConfigurationBuilder();
 
         // Act
-        Action loadSettings = () => { builder.AddKeyVaultSecrets(null, new [] {"key1", "key2"}); };
+        Action loadSettings = () => { builder.AddKeyVaultSecrets(null, new[] { "key1", "key2" }); };
 
         // Assert
         loadSettings.Should().Throw<ArgumentNullException>();
