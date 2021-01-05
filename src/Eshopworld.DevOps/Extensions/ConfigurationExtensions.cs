@@ -158,9 +158,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>The configuration builder after config has been added.</returns>
         public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string environment = null)
         {
-            builder.AddEnvironmentVariables()
-                    .AddCommandLine(Environment.GetCommandLineArgs())
-                    .AddJsonFile(appSettingsPath, true);
+            UseDefaultConfigs(builder, new[] { appSettingsPath });
 
             var env = EswDevOpsSdk.GetEnvironmentName();
 
