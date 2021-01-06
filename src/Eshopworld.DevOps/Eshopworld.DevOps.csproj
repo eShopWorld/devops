@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.9</Version>
-    <PackageReleaseNotes>Added an overload for multiple files options to UseDefaultConfigs in order to allow client apps fully control the config files they are using.</PackageReleaseNotes>
+    <Version>5.1.10</Version>
+    <PackageReleaseNotes>Decorate the TelemetrySettings class with the KeyVaultSecretName attribute to allow for automagic secret binding.</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>
-    <Authors>Oisin Haken, Artur Zgodzinski, Robert McCabe</Authors>
+    <Authors>Oisin Haken, Artur Zgodzinski, Robert McCabe, Antonino Parisi</Authors>
     <Company>Eshopworld</Company>
     <Copyright>Eshopworld</Copyright>
     <PackageProjectUrl>https://github.com/eShopWorld/devops</PackageProjectUrl>
