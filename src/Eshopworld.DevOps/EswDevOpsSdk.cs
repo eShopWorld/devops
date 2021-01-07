@@ -141,11 +141,25 @@ namespace Eshopworld.DevOps
         }
 
         /// <summary>
-        /// Returns the deployment region retrieved from <see cref="DeploymentRegionEnvVariable"/> environment variable
+        /// Try getting the deployment region retrieved from <see cref="DeploymentRegionEnvVariable"/> environment variable
         /// </summary>
         /// <returns></returns>
         // ReSharper disable once MemberCanBePrivate.Global
-        public static DeploymentRegion GetDeploymentRegion()
+        public static bool TryGetDeploymentRegion(out DeploymentRegion deploymentRegion)
+        {
+            try
+            {
+                deploymentRegion = GetDeploymentRegion();
+                return true;
+            }
+            catch (DevOpsSDKException)
+            {
+                deploymentRegion = DeploymentRegion.None;
+                return false;
+            }
+        }
+
+        private static DeploymentRegion GetDeploymentRegion()
         {
             var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
 

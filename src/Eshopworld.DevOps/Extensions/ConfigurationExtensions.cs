@@ -168,7 +168,12 @@ namespace Microsoft.Extensions.Configuration
                 builder.AddJsonFile($"appsettings.{env}.json", true, true);
             }
 
-            var region = ! string.IsNullOrEmpty (deploymentRegion) ? deploymentRegion : EswDevOpsSdk.GetDeploymentRegion ().ToRegionCode ();
+            var region = deploymentRegion;
+
+            if (string.IsNullOrEmpty(region) && EswDevOpsSdk.TryGetDeploymentRegion(out var depReg))
+            {
+                region = depReg.ToRegionCode();
+            }
 
             if (! string.IsNullOrEmpty (region))
             {

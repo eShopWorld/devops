@@ -91,13 +91,14 @@ public class EswDevOpsSdkTests
     [InlineData("West Europe", DeploymentRegion.WestEurope)]
     [InlineData("Southeast Asia", DeploymentRegion.SoutheastAsia)]
     [InlineData("East US", DeploymentRegion.EastUS)]
+    [InlineData(null, DeploymentRegion.None)]
     public void GetDeploymentRegionTest(string regionValue, DeploymentRegion region)
     {
         var prevRegion = Environment.GetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Process);
         try
         {
-            var deploymentRegion = EswDevOpsSdk.GetDeploymentRegion();
+            EswDevOpsSdk.TryGetDeploymentRegion(out var deploymentRegion);
             deploymentRegion.Should().Be(region);
         }
         finally
