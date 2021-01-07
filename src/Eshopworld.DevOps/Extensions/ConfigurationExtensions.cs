@@ -155,19 +155,24 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="builder">The configuration builder to bind to.</param>
         /// <param name="appSettingsPath">The application settings path.</param>
         /// <param name="environment">Specify the environment - optional, as its loaded from the ENVIRONMENT env variable if not set here.</param>
+        /// <param name="deploymentRegion">Specify the deployment region - optional, as its loaded from the DEPLOYMENT_REGION env variable if not set here.</param>
         /// <returns>The configuration builder after config has been added.</returns>
-        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string environment = null)
+        public static IConfigurationBuilder UseDefaultConfigs(this IConfigurationBuilder builder, string appSettingsPath = "appsettings.json", string environment = null, string deploymentRegion = null)
         {
             UseDefaultConfigs(builder, new[] { appSettingsPath });
 
-            var env = EswDevOpsSdk.GetEnvironmentName();
-
-            if (!string.IsNullOrEmpty(environment))
-                env = environment;
+            var env = !string.IsNullOrEmpty(environment) ? environment : EswDevOpsSdk.GetEnvironmentName();
 
             if (!string.IsNullOrEmpty(env))
             {
                 builder.AddJsonFile($"appsettings.{env}.json", true, true);
+            }
+
+            var region = ! string.IsNullOrEmpty (deploymentRegion) ? deploymentRegion : EswDevOpsSdk.GetDeploymentRegion ().ToRegionCode ();
+
+            if (! string.IsNullOrEmpty (region))
+            {
+                builder.AddJsonFile($"appsettings.{env}.{region}.json", true, true);
             }
 
             return builder;
