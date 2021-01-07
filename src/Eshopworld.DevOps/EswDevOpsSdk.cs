@@ -132,13 +132,7 @@ namespace Eshopworld.DevOps
         /// <returns>deployment context instance</returns>
         public static DeploymentContext CreateDeploymentContext(DeploymentEnvironment targetEnvironment = DeploymentEnvironment.Prod)
         {
-            var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
-
-            if (string.IsNullOrWhiteSpace(regionString))
-                throw new DevOpsSDKException(
-                    $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
-
-            var parsed = ParseRegionFromString(regionString);
+            var parsed = GetDeploymentRegion();
 
             var preferredRegions = GetRegionSequence(targetEnvironment, parsed)
                 .Select(i => i.ToRegionName());
@@ -146,22 +140,44 @@ namespace Eshopworld.DevOps
             return new DeploymentContext { PreferredRegions = preferredRegions };
         }
 
-        private static DeploymentRegion ParseRegionFromString(string value)
+        /// <summary>
+        /// Try getting the deployment region retrieved from <see cref="DeploymentRegionEnvVariable"/> environment variable
+        /// </summary>
+        /// <returns></returns>
+        // ReSharper disable once MemberCanBePrivate.Global
+        public static bool TryGetDeploymentRegion(out DeploymentRegion deploymentRegion)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Null or empty value", nameof(value));
+            try
+            {
+                deploymentRegion = GetDeploymentRegion();
+                return true;
+            }
+            catch (DevOpsSDKException)
+            {
+                deploymentRegion = DeploymentRegion.None;
+                return false;
+            }
+        }
 
+        private static DeploymentRegion GetDeploymentRegion()
+        {
+            var regionString = GetEnvironmentVariable(DeploymentRegionEnvVariable);
+
+            if (string.IsNullOrWhiteSpace(regionString))
+                throw new DevOpsSDKException(
+                    $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
+            
             foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi => !fi.IsSpecialName))
             {
                 var regionDescriptor = (RegionDescriptorAttribute)field.GetCustomAttributes(
                     typeof(RegionDescriptorAttribute),
                     false).First();
 
-                if (value.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
+                if (regionString.Equals(regionDescriptor.ToString(), StringComparison.OrdinalIgnoreCase))
                     return (DeploymentRegion)field.GetRawConstantValue();
             }
 
-            throw new DevOpsSDKException($"Unrecognized region name - {value}");
+            throw new DevOpsSDKException($"Unrecognized region name - {regionString}");
         }
 
         /// <summary>

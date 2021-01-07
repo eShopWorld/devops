@@ -88,6 +88,26 @@ public class EswDevOpsSdkTests
     }
 
     [Theory, IsLayer0]
+    [InlineData("West Europe", DeploymentRegion.WestEurope)]
+    [InlineData("Southeast Asia", DeploymentRegion.SoutheastAsia)]
+    [InlineData("East US", DeploymentRegion.EastUS)]
+    [InlineData(null, DeploymentRegion.None)]
+    public void GetDeploymentRegionTest(string regionValue, DeploymentRegion region)
+    {
+        var prevRegion = Environment.GetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Process);
+        try
+        {
+            EswDevOpsSdk.TryGetDeploymentRegion(out var deploymentRegion);
+            deploymentRegion.Should().Be(region);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, prevRegion, EnvironmentVariableTarget.Process);
+        }
+    }
+
+    [Theory, IsLayer0]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Test, DeploymentEnvironment.Test)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.CI, DeploymentEnvironment.CI)]
     [InlineData(DeploymentEnvironment.Prod, DeploymentEnvironment.Sand, DeploymentEnvironment.Sand)]

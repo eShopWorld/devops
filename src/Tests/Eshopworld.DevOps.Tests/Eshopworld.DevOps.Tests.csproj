@@ -36,6 +36,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appSettings.CI.SA.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appSettings.CI.EUS.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appSettings.CI.WE.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="appSettings.ORDER.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

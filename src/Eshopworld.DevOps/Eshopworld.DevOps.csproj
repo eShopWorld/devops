@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.10</Version>
-    <PackageReleaseNotes>Decorate the TelemetrySettings class with the KeyVaultSecretName attribute to allow for automagic secret binding.</PackageReleaseNotes>
+    <Version>5.1.11</Version>
+    <PackageReleaseNotes>Added Support for regional app setting configurations.</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
     <PackageIcon>icon.png</PackageIcon>

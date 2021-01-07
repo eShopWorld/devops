@@ -49,6 +49,57 @@ public class ConfigBuilderIntegrationTests
         result.Should().Be("option1-from-test");
     }
 
+    [Theory, IsIntegration]
+    [InlineData("CI", null, "West Europe", null, "CI", "CI-WE-secret")]
+    [InlineData("CI", null, "West Europe", "WE", "CI", "CI-WE-secret")]
+    [InlineData("CI", "CI", "West Europe", null, "CI", "CI-WE-secret")]
+    [InlineData("CI", "CI", "West Europe", "WE", "CI", "CI-WE-secret")]
+    [InlineData("CI", null, "East US", null, "CI", "CI-EUS-secret")]
+    [InlineData("CI", null, "East US", "EUS", "CI", "CI-EUS-secret")]
+    [InlineData("CI", "CI", "East US", null, "CI", "CI-EUS-secret")]
+    [InlineData("CI", "CI", "East US", "EUS", "CI", "CI-EUS-secret")]
+    [InlineData("CI", null, "Southeast Asia", null, "CI", "CI-SA-secret")]
+    [InlineData("CI", null, "Southeast Asia", "SA", "CI", "CI-SA-secret")]
+    [InlineData("CI", "CI", "Southeast Asia", null, "CI", "CI-SA-secret")]
+    [InlineData("CI", "CI", "Southeast Asia", "SA", "CI", "CI-SA-secret")]
+    [InlineData("TEST", null, "West Europe", null, "default", "default-secret")]
+    [InlineData("TEST", null, "West Europe", "WE", "default", "default-secret")]
+    [InlineData("TEST", "TEST", "West Europe", null, "default", "default-secret")]
+    [InlineData("TEST", "TEST", "West Europe", "WE", "default", "default-secret")]
+    public void Test_ConfigBuilder_UseDefaultConfigs_For_Regional_Config
+        (string envValue, string envParam, string regionValue, string regionParam, string expectedKey, string expectedSecret)
+    {
+        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue, EnvironmentVariableTarget.Process);
+
+        var prevRegion = Environment.GetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Process);
+        
+        try
+        {
+            // Arrange
+            
+            // Act
+            IConfiguration configuration = new ConfigurationBuilder()
+                .UseDefaultConfigs(environment: envParam, deploymentRegion: regionParam)
+                .Build();
+
+            // Assert
+            configuration.TryGetValue<string>("RegionalConfig:Key", out var key).Should().BeTrue();
+            key.Should().NotBeNull();
+            key.Should().Be(expectedKey);
+
+            configuration.TryGetValue<string>("RegionalConfig:Secret", out var secret).Should().BeTrue();
+            secret.Should().NotBeNull();
+            secret.Should().Be(expectedSecret);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, prevRegion, EnvironmentVariableTarget.Process);
+        }
+    }
+
     /// <summary>Verify invalid operation exception when wrong key vault is set.</summary>
     [Fact, IsIntegration]
     public void Test_KeyVault_Builder_AddKeyVaultSecretsWithParams_InvalidKeyVault()
