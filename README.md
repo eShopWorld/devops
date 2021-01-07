@@ -12,7 +12,8 @@ Below is an example of loading various config sources using the `UseDefaultConfi
 - Environment Variables
 - Command Line
 - `appSettings.json` file
-- environment specific `appSettings.json`
+- environment specific `appSettings.json` like `appSettings.CI.json`
+- region specific `appSettings.json` like `appSettings.CI.WE.json`
 
 ```csharp
 public class Program
