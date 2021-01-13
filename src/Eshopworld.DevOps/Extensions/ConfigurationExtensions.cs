@@ -55,8 +55,8 @@ namespace Microsoft.Extensions.Configuration
             }
 
             var builder = new PropertyMappingBuilder<T>();
-                propertyMappingAction.Invoke(builder);
-            
+            propertyMappingAction.Invoke(builder);
+
             return builder.Mappings.ToArray();
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.Extensions.Configuration
         public static T BindBaseSection<T>(this IConfiguration config)
         {
             if (config == null)
-                throw new ArgumentNullException( nameof(config), "Configuration must be set");
+                throw new ArgumentNullException(nameof(config), "Configuration must be set");
 
             var configBase = new ConfigurationBuilder();
             var items = new Dictionary<string, string>();
@@ -175,7 +175,7 @@ namespace Microsoft.Extensions.Configuration
                 region = depReg.ToRegionCode();
             }
 
-            if (! string.IsNullOrEmpty (region))
+            if (!string.IsNullOrEmpty(region))
             {
                 builder.AddJsonFile($"appsettings.{env}.{region}.json", true, true);
             }
@@ -199,7 +199,7 @@ namespace Microsoft.Extensions.Configuration
         {
             builder.AddEnvironmentVariables()
                    .AddCommandLine(Environment.GetCommandLineArgs());
-            
+
             foreach (var file in appSettingsFiles ?? throw new ArgumentNullException(nameof(appSettingsFiles)))
             {
                 builder.AddJsonFile(file, true);
@@ -308,7 +308,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="ArgumentException">Vault url must be set</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string,string> keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string, string> keys, bool suppressKeyNotFoundError = true)
         {
             if (vaultUrl == null)
                 throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
@@ -316,38 +316,31 @@ namespace Microsoft.Extensions.Configuration
             if (keys == null || keys.Count == 0)
                 return builder;
 
-            try
-            {
-                using var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
-                var secrets = new List<KeyValuePair<string, string>>();
+            using var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
+            var secrets = new List<KeyValuePair<string, string>>();
 
-                // Gather secrets from Key Vault, one by one.
-                foreach (var pair in keys)
+            // Gather secrets from Key Vault, one by one.
+            foreach (var pair in keys)
+            {
+                try
                 {
-                    try
-                    {
-                        var secret = vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false).GetAwaiter().GetResult();
-                        secrets.Add(new KeyValuePair<string, string>(pair.Value, secret.Value));
-                    }
-                    catch (KeyVaultErrorException e)
-                        when (e.Response.StatusCode == HttpStatusCode.NotFound && suppressKeyNotFoundError)
-                    {
-                        // Do nothing if it fails to find the value.
-                        Console.WriteLine($"Failed to find key vault setting: {pair}, exception: {e.Message}");
-                    }
+                    var secret = vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false).GetAwaiter().GetResult();
+                    secrets.Add(new KeyValuePair<string, string>(pair.Value, secret.Value));
                 }
-
-                // Add them to config.
-                if (secrets.Any())
-                    builder.AddInMemoryCollection(secrets);
-
-                // Return updated builder.
-                return builder;
+                catch (KeyVaultErrorException e)
+                    when (e.Response.StatusCode == HttpStatusCode.NotFound && suppressKeyNotFoundError)
+                {
+                    // Do nothing if it fails to find the value.
+                    Console.WriteLine($"Failed to find key vault setting: {pair}, exception: {e.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Problem occurred retrieving secrets from KeyVault using Managed Identity", ex);
-            }
+
+            // Add them to config.
+            if (secrets.Any())
+                builder.AddInMemoryCollection(secrets);
+
+            // Return updated builder.
+            return builder;
         }
 
         /// <summary>
@@ -359,7 +352,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>Builder with key/value added.</returns>
         public static IConfigurationBuilder AddValue(this IConfigurationBuilder builder, string key, string value)
         {
-            return builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value)});
+            return builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value) });
         }
 
         /// <summary>
