@@ -280,7 +280,7 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="suppressKeyNotFoundError">If [true], when a key is missing an invalid operation exception will be thrown. If [false], the
         /// error will be suppressed and it will just not add the key to the returned collection.</param>
         /// <param name="onSecretsErrorCallback">Allow to grab or handle the execution when an exception occurrs. If it is passed then the exceptions will we wrapped into a method that should be defined in the client/clild class.
-        /// If it is null and a exception occurrs then an InvalidOperationException will we raised</param> 
+        /// If it is null and an exception occurrs then an InvalidOperationException will we raised</param> 
         /// <param name="onSecretsNotFoundCallback">Allow to grab or handle the execution when a Key is not found in the Key Vault. If passed then all the Not Found Keys will we wrappep into a method that should be defined in the client/clild class.
         /// If it is null and a not found exception occurrs then we are going to log a message in the console</param> 
         /// <returns>IConfigurationBuilder.</returns>
@@ -441,7 +441,6 @@ namespace Microsoft.Extensions.Configuration
             return kvUri;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(SecretClient secretClient, KeyValuePair<string, string> pair)
         {
             var httpStatusCode = HttpStatusCode.OK;
