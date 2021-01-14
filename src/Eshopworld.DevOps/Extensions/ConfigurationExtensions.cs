@@ -355,7 +355,8 @@ namespace Microsoft.Extensions.Configuration
 
             // Get Ok Tasks
             var tasksOK = tasks
-               .Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK)
+               .Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK
+                && !string.IsNullOrEmpty(x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair.Value))
                .Select(x => x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
 
             // Add them to config.            
@@ -430,7 +431,8 @@ namespace Microsoft.Extensions.Configuration
             try
             {
                 var secret = await secretClient.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
-                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value.Value);
+                if (secret != null && secret.Value != null && !string.IsNullOrEmpty(secret.Value.Value))
+                    keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value.Value);
             }
             catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.NotFound)
             {
