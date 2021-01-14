@@ -253,10 +253,13 @@ namespace Microsoft.Extensions.Configuration
         /// </summary>
         /// <param name="builder">The builder.</param>
         /// <param name="params">The parameters.</param>
+        /// <param name="suppressKeyNotFoundError">If [true], when a key is missing an invalid operation exception will be thrown. If [false], the
+        /// error will be suppressed and it will just not add the key to the returned collection.</param>
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="InvalidOperationException">Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config</exception>
         /// <exception cref="InvalidOperationException">Vault url \"{vaultUrl}\" is invalid</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> @params)
+        /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> @params, bool suppressKeyNotFoundError = true)
         {
             // Get the expected key vault url setting from the environment.
             var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
@@ -280,7 +283,7 @@ namespace Microsoft.Extensions.Configuration
                 throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
             }
 
-            return AddKeyVaultSecrets(builder, kvUri, @params);
+            return AddKeyVaultSecrets(builder, kvUri, @params, suppressKeyNotFoundError);
         }
 
         /// <summary>
@@ -329,7 +332,7 @@ namespace Microsoft.Extensions.Configuration
             // Add Retry Policy
             vault.SetRetryPolicy(retryPolicy);
 
-            var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();            
+            var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();
 
             // Gather secrets from Key Vault in async way
             foreach (var pair in keys)
@@ -361,37 +364,7 @@ namespace Microsoft.Extensions.Configuration
 
             // Return updated builder.
             return builder;
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, KeyVaultClient vault, KeyValuePair<string, string> pair)
-        {
-            var httpStatusCode = HttpStatusCode.OK;
-            var keyVaultErrorExceptionMessage = string.Empty;
-            var keyValuePair = new KeyValuePair<string, string>(null, null);
-
-            try
-            {
-                var secret = await vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
-                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value);
-            }
-            catch (KeyVaultErrorException e) when (e.Response.StatusCode == HttpStatusCode.NotFound)
-            {
-                httpStatusCode = HttpStatusCode.NotFound;
-
-                // Do nothing if it fails to find the value.
-                keyVaultErrorExceptionMessage = $"Failed to find key vault setting pair: {pair}, exception: {e.Message}";
-            }
-            catch (Exception e)
-            {
-                httpStatusCode = HttpStatusCode.BadRequest;
-
-                // Do nothing if it fails to find the value.
-                keyVaultErrorExceptionMessage = $"An unhandled exception has occured pair: {pair}, exception: {e.Message}";
-            }
-
-            return (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
-        }
+        }       
 
         /// <summary>
         /// Add key/value to config builder.
@@ -400,10 +373,8 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="key">Key for value being added.</param>
         /// <param name="value">Value to add.</param>
         /// <returns>Builder with key/value added.</returns>
-        public static IConfigurationBuilder AddValue(this IConfigurationBuilder builder, string key, string value)
-        {
-            return builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value) });
-        }
+        public static IConfigurationBuilder AddValue(this IConfigurationBuilder builder, string key, string value) =>
+            builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value) });
 
         /// <summary>
         /// Add enumerable list of config values.
@@ -411,10 +382,8 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="builder">Builder to extend.</param>
         /// <param name="values">List of values to add.</param>
         /// <returns>Builder with values added.</returns>
-        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IDictionary<string, string> values)
-        {
-            return builder.AddInMemoryCollection(values);
-        }
+        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IDictionary<string, string> values) => 
+            builder.AddInMemoryCollection(values);
 
         /// <summary>
         /// Extension to grab values from existing configs during the build process.
@@ -450,6 +419,36 @@ namespace Microsoft.Extensions.Configuration
             }
 
             return true;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, KeyVaultClient vault, KeyValuePair<string, string> pair)
+        {
+            var httpStatusCode = HttpStatusCode.OK;
+            var keyVaultErrorExceptionMessage = string.Empty;
+            var keyValuePair = new KeyValuePair<string, string>(null, null);
+
+            try
+            {
+                var secret = await vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
+                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value);
+            }
+            catch (KeyVaultErrorException e) when (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                httpStatusCode = HttpStatusCode.NotFound;
+
+                // Do nothing if it fails to find the value.
+                keyVaultErrorExceptionMessage = $"Failed to find key vault setting pair: {pair}, exception: {e.Message}";
+            }
+            catch (Exception e)
+            {
+                httpStatusCode = HttpStatusCode.BadRequest;
+
+                // Do nothing if it fails to find the value.
+                keyVaultErrorExceptionMessage = $"An unhandled exception has occured pair: {pair}, exception: {e.Message}";
+            }
+
+            return (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
         }
     }
 }
