@@ -1,28 +1,22 @@
 ﻿// ReSharper disable once CheckNamespace
 
+using Azure;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Eshopworld.DevOps;
+using Eshopworld.DevOps.KeyVault;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+
 namespace Microsoft.Extensions.Configuration
 {
-    using Azure.KeyVault;
-    using Azure.KeyVault.Models;
-    using Azure.Services.AppAuthentication;
-    using Eshopworld.DevOps;
-    using Eshopworld.DevOps.KeyVault;
-    using Microsoft.Rest.TransientFaultHandling;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
-
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
-        readonly static RetryPolicy retryPolicy = new RetryPolicy<HttpStatusCodeErrorDetectionStrategy>(new ExponentialBackoffRetryStrategy(
-                                                retryCount: 3,
-                                                minBackoff: TimeSpan.FromSeconds(1.0),
-                                                maxBackoff: TimeSpan.FromSeconds(16.0),
-                                                deltaBackoff: TimeSpan.FromSeconds(2.0)));
-
         /// <summary>
         /// Binds a configuration section to an object.
         /// If the properties are decorated with the KeyVaultSecretName attribute, or key vault secret mapping are manually specified
@@ -327,16 +321,21 @@ namespace Microsoft.Extensions.Configuration
             if (keys == null || keys.Count == 0)
                 return builder;
 
-            using var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
-
-            // Add Retry Policy
-            vault.SetRetryPolicy(retryPolicy);
+            var secretClient = new SecretClient(vaultUrl, new DefaultAzureCredential(), new SecretClientOptions()
+            {
+                Retry =
+                {
+                    Delay = TimeSpan.FromSeconds(2),
+                    MaxRetries = 3,
+                    Mode = RetryMode.Exponential
+                }
+            });
 
             var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();
 
             // Gather secrets from Key Vault in async way
             foreach (var pair in keys)
-                tasks.Add(GetSecretAsync(vaultUrl, vault, pair));
+                tasks.Add(GetSecretAsync(vaultUrl, secretClient, pair));
 
             // Wait for all tasks and results
             Task.WaitAll(tasks.ToArray());
@@ -364,7 +363,7 @@ namespace Microsoft.Extensions.Configuration
 
             // Return updated builder.
             return builder;
-        }       
+        }
 
         /// <summary>
         /// Add key/value to config builder.
@@ -382,7 +381,7 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="builder">Builder to extend.</param>
         /// <param name="values">List of values to add.</param>
         /// <returns>Builder with values added.</returns>
-        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IDictionary<string, string> values) => 
+        public static IConfigurationBuilder AddValues(this IConfigurationBuilder builder, IDictionary<string, string> values) =>
             builder.AddInMemoryCollection(values);
 
         /// <summary>
@@ -422,7 +421,7 @@ namespace Microsoft.Extensions.Configuration
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, KeyVaultClient vault, KeyValuePair<string, string> pair)
+        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, SecretClient secretClient, KeyValuePair<string, string> pair)
         {
             var httpStatusCode = HttpStatusCode.OK;
             var keyVaultErrorExceptionMessage = string.Empty;
@@ -430,10 +429,10 @@ namespace Microsoft.Extensions.Configuration
 
             try
             {
-                var secret = await vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
-                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value);
+                var secret = await secretClient.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
+                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value.Value);
             }
-            catch (KeyVaultErrorException e) when (e.Response.StatusCode == HttpStatusCode.NotFound)
+            catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.NotFound)
             {
                 httpStatusCode = HttpStatusCode.NotFound;
 
