@@ -17,6 +17,10 @@ namespace Microsoft.Extensions.Configuration
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
+
+        public delegate void OnSecretsErrorCallback(List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> result);
+        public delegate void OnSecretsNotFoundCallback(List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> result);
+
         /// <summary>
         /// Binds a configuration section to an object.
         /// If the properties are decorated with the KeyVaultSecretName attribute, or key vault secret mapping are manually specified
@@ -215,32 +219,8 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="params">The list of keys to load.</param>
         /// <returns>IConfigurationBuilder with param keys as settings.</returns>
         /// <exception cref="InvalidOperationException">Vault url must be set, ensure `EswDevOpsSdk.KeyVaultUrlKey` is set or "KeyVaultInstanceName" has been set in config</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, params string[] @params)
-        {
-            // Get the expected key vault url setting from the environment.
-            var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
-
-            if (string.IsNullOrEmpty(vaultUrl))
-            {
-                // If url was not set, look for an instance name and infer url.
-                var instanceName = builder.GetValue<string>("KeyVaultInstanceName");
-                vaultUrl = $"https://{instanceName}.vault.azure.net";
-            }
-
-            // Verify the key vault url is set.
-            if (string.IsNullOrEmpty(vaultUrl))
-            {
-                throw new InvalidOperationException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
-            }
-
-            // Verify the key vault url is a valid url.
-            if (!(Uri.TryCreate(vaultUrl, UriKind.Absolute, out var kvUri)))
-            {
-                throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
-            }
-
-            return AddKeyVaultSecrets(builder, kvUri, @params);
-        }
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, params string[] @params) =>
+            AddKeyVaultSecrets(builder, CheckAndGetURI(builder), @params);
 
         /// <summary>
         /// Adds the key vault secrets and maps them to a different key in IConfiguration.
@@ -253,32 +233,8 @@ namespace Microsoft.Extensions.Configuration
         /// <exception cref="InvalidOperationException">Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config</exception>
         /// <exception cref="InvalidOperationException">Vault url \"{vaultUrl}\" is invalid</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> @params, bool suppressKeyNotFoundError = true)
-        {
-            // Get the expected key vault url setting from the environment.
-            var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
-
-            if (string.IsNullOrEmpty(vaultUrl))
-            {
-                // If url was not set, look for an instance name and infer url.
-                var instanceName = builder.GetValue<string>("KeyVaultInstanceName");
-                vaultUrl = $"https://{instanceName}.vault.azure.net";
-            }
-
-            // Verify the key vault url is set.
-            if (string.IsNullOrEmpty(vaultUrl))
-            {
-                throw new InvalidOperationException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
-            }
-
-            // Verify the key vault url is a valid url.
-            if (!(Uri.TryCreate(vaultUrl, UriKind.Absolute, out var kvUri)))
-            {
-                throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
-            }
-
-            return AddKeyVaultSecrets(builder, kvUri, @params, suppressKeyNotFoundError);
-        }
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> @params, bool suppressKeyNotFoundError = true, OnSecretsErrorCallback onSecretsErrorCallback = null, OnSecretsNotFoundCallback onSecretsNotFoundCallback = null) =>
+            AddKeyVaultSecrets(builder, CheckAndGetURI(builder), @params, suppressKeyNotFoundError, onSecretsErrorCallback, onSecretsNotFoundCallback);
 
         /// <summary>
         /// Adds the key vault secrets specified.  Uses Msi auth and builds the instance name on the fly.
@@ -292,13 +248,13 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="ArgumentException">Vault url must be set</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, string[] keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, string[] keys, bool suppressKeyNotFoundError = true, OnSecretsErrorCallback onSecretsErrorCallback = null, OnSecretsNotFoundCallback onSecretsNotFoundCallback = null)
         {
             if (keys == null || keys.Length == 0)
                 return builder;
 
             var kvs = keys.ToDictionary(key => key, val => val);
-            return AddKeyVaultSecrets(builder, vaultUrl, kvs, suppressKeyNotFoundError);
+            return AddKeyVaultSecrets(builder, vaultUrl, kvs, suppressKeyNotFoundError, onSecretsErrorCallback, onSecretsNotFoundCallback);
         }
 
         /// <summary>
@@ -310,11 +266,24 @@ namespace Microsoft.Extensions.Configuration
         /// <param name="keys">The dictionary of keys values to load (key) and map to (value).</param>
         /// <param name="suppressKeyNotFoundError">If [true], when a key is missing an invalid operation exception will be thrown. If [false], the
         /// error will be suppressed and it will just not add the key to the returned collection.</param>
+        /// <param name="onSecretsErrorCallback">Allow to grab or handle the execution when an exception occurrs. If it is passed then the exceptions will we wrapped into a method that should be defined in the client/clild class.
+        /// If it is null and a exception occurrs then an InvalidOperationException will we raised</param> 
+        /// <param name="onSecretsNotFoundCallback">Allow to grab or handle the execution when a Key is not found in the Key Vault. If passed then all the Not Found Keys will we wrappep into a method that should be defined in the client/clild class.
+        /// If it is null and a not found exception occurrs then we are going to log a message in the console</param> 
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="ArgumentException">Vault url must be set</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string, string> keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(
+            this IConfigurationBuilder builder,
+            Uri vaultUrl,
+            Dictionary<string, string> keys,
+            bool suppressKeyNotFoundError = true,
+            OnSecretsErrorCallback onSecretsErrorCallback = null,
+            OnSecretsNotFoundCallback onSecretsNotFoundCallback = null)
         {
+            var onSecretsNotFoundCallbackList = new List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)>();
+            var onSecretsErrorCallbackList = new List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)>();
+
             if (vaultUrl == null)
                 throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
 
@@ -347,17 +316,28 @@ namespace Microsoft.Extensions.Configuration
 
                 if (httpStatusCode == HttpStatusCode.NotFound)
                     if (suppressKeyNotFoundError)// Do nothing if it fails to find the value.
+                    {
                         Console.WriteLine(keyVaultErrorExceptionMessage);
+
+                        onSecretsNotFoundCallbackList.Add(new(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
+                    }
                     else
                         throw new InvalidOperationException(keyVaultErrorExceptionMessage);
-                else throw new InvalidOperationException(keyVaultErrorExceptionMessage);
+                else
+                    ManageSecretsOnError(onSecretsErrorCallback, onSecretsErrorCallbackList, keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
             }
+
+            if (onSecretsNotFoundCallback != null && onSecretsNotFoundCallbackList.Any())
+                onSecretsNotFoundCallback(onSecretsNotFoundCallbackList);
+
+            if (onSecretsErrorCallback != null && onSecretsErrorCallbackList.Any())
+                onSecretsErrorCallback(onSecretsErrorCallbackList);
 
             // Get Ok Tasks
             var tasksOK = tasks
-               .Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK
-                && !string.IsNullOrEmpty(x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair.Value))
-               .Select(x => x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
+           .Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK
+            && !string.IsNullOrEmpty(x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair.Value))
+           .Select(x => x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
 
             // Add them to config.            
             builder.AddInMemoryCollection(tasksOK);
@@ -421,16 +401,43 @@ namespace Microsoft.Extensions.Configuration
             return true;
         }
 
+        private static Uri CheckAndGetURI(IConfigurationBuilder builder)
+        {
+            // Get the expected key vault url setting from the environment.
+            var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
+
+            if (string.IsNullOrEmpty(vaultUrl))
+            {
+                // If url was not set, look for an instance name and infer url.
+                var instanceName = builder.GetValue<string>("KeyVaultInstanceName");
+                vaultUrl = $"https://{instanceName}.vault.azure.net";
+            }
+
+            // Verify the key vault url is set.
+            if (string.IsNullOrEmpty(vaultUrl))
+            {
+                throw new InvalidOperationException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
+            }
+
+            // Verify the key vault url is a valid url.
+            if (!(Uri.TryCreate(vaultUrl, UriKind.Absolute, out var kvUri)))
+            {
+                throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
+            }
+
+            return kvUri;
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, SecretClient secretClient, KeyValuePair<string, string> pair)
         {
             var httpStatusCode = HttpStatusCode.OK;
             var keyVaultErrorExceptionMessage = string.Empty;
-            var keyValuePair = new KeyValuePair<string, string>(null, null);
+            var keyValuePair = new KeyValuePair<string, string>(pair.Key, null);
 
             try
             {
-                var secret = await secretClient.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
+                var secret = await secretClient.GetSecretAsync(pair.Key).ConfigureAwait(false);
                 if (secret != null && secret.Value != null && !string.IsNullOrEmpty(secret.Value.Value))
                     keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value.Value);
             }
@@ -450,6 +457,14 @@ namespace Microsoft.Extensions.Configuration
             }
 
             return (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
+        }
+
+        private static void ManageSecretsOnError(OnSecretsErrorCallback onSecretsErrorCallback, List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> onSecretsErrorCallbackList, string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)
+        {
+            if (onSecretsErrorCallback != null)
+                onSecretsErrorCallbackList.Add(new(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
+            else
+                throw new InvalidOperationException(keyVaultErrorExceptionMessage);
         }
     }
 }
