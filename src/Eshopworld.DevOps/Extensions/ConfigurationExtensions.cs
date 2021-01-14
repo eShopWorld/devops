@@ -317,7 +317,7 @@ namespace Microsoft.Extensions.Configuration
 
             // Gather secrets from Key Vault in async way
             foreach (var pair in keys)
-                tasks.Add(GetSecretAsync(vaultUrl, secretClient, pair));
+                tasks.Add(GetSecretAsync(secretClient, pair));
 
             // Wait for all tasks and results
             Task.WaitAll(tasks.ToArray());
@@ -442,7 +442,7 @@ namespace Microsoft.Extensions.Configuration
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, SecretClient secretClient, KeyValuePair<string, string> pair)
+        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(SecretClient secretClient, KeyValuePair<string, string> pair)
         {
             var httpStatusCode = HttpStatusCode.OK;
             var keyVaultErrorExceptionMessage = string.Empty;
