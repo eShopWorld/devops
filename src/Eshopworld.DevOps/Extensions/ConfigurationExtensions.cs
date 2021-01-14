@@ -14,12 +14,25 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.Configuration
 {
+    public class SecretsCallbackModel
+    {
+        public SecretsCallbackModel(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)
+        {
+            KeyVaultErrorExceptionMessage = keyVaultErrorExceptionMessage;
+            HttpStatusCode = httpStatusCode;
+            Key = key;
+        }
+
+        public string KeyVaultErrorExceptionMessage { get; private set; }
+        public HttpStatusCode HttpStatusCode { get; private set; }
+        public string Key { get; private set; }
+    }
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
 
-        public delegate void OnSecretsErrorCallback(List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> result);
-        public delegate void OnSecretsNotFoundCallback(List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> result);
+        public delegate void OnSecretsErrorCallback(List<SecretsCallbackModel> result);
+        public delegate void OnSecretsNotFoundCallback(List<SecretsCallbackModel> result);
 
         /// <summary>
         /// Binds a configuration section to an object.
@@ -281,8 +294,8 @@ namespace Microsoft.Extensions.Configuration
             OnSecretsErrorCallback onSecretsErrorCallback = null,
             OnSecretsNotFoundCallback onSecretsNotFoundCallback = null)
         {
-            var onSecretsNotFoundCallbackList = new List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)>();
-            var onSecretsErrorCallbackList = new List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)>();
+            var onSecretsNotFoundCallbackList = new List<SecretsCallbackModel>();
+            var onSecretsErrorCallbackList = new List<SecretsCallbackModel>();
 
             if (vaultUrl == null)
                 throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
@@ -319,7 +332,7 @@ namespace Microsoft.Extensions.Configuration
                     {
                         Console.WriteLine(keyVaultErrorExceptionMessage);
 
-                        onSecretsNotFoundCallbackList.Add(new(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
+                        onSecretsNotFoundCallbackList.Add(new SecretsCallbackModel(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
                     }
                     else
                         throw new InvalidOperationException(keyVaultErrorExceptionMessage);
@@ -459,10 +472,10 @@ namespace Microsoft.Extensions.Configuration
             return (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
         }
 
-        private static void ManageSecretsOnError(OnSecretsErrorCallback onSecretsErrorCallback, List<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)> onSecretsErrorCallbackList, string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)
+        private static void ManageSecretsOnError(OnSecretsErrorCallback onSecretsErrorCallback, List<SecretsCallbackModel> onSecretsErrorCallbackList, string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)
         {
             if (onSecretsErrorCallback != null)
-                onSecretsErrorCallbackList.Add(new(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
+                onSecretsErrorCallbackList.Add(new SecretsCallbackModel(keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair.Key));
             else
                 throw new InvalidOperationException(keyVaultErrorExceptionMessage);
         }
