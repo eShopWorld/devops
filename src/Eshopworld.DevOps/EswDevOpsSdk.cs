@@ -207,10 +207,8 @@ namespace Eshopworld.DevOps
         /// Gets the subscription id of assigned to the current environment.
         /// </summary>
         /// <returns>Returns the subscription id.</returns>
-        public static string GetSubscriptionId()
-        {
-            return GetSubscriptionId(GetEnvironment());
-        }
+        public static string GetSubscriptionId() =>
+            GetSubscriptionId(GetEnvironment());
 
         internal static string GetSubscriptionId(DeploymentEnvironment environment)
         {
