@@ -7,14 +7,22 @@ namespace Microsoft.Extensions.Configuration
     using Azure.Services.AppAuthentication;
     using Eshopworld.DevOps;
     using Eshopworld.DevOps.KeyVault;
+    using Microsoft.Rest.TransientFaultHandling;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading.Tasks;
 
     /// <summary>Class Configuration extensions.</summary>
     public static class ConfigurationExtensions
     {
+        readonly static RetryPolicy retryPolicy = new RetryPolicy<HttpStatusCodeErrorDetectionStrategy>(new ExponentialBackoffRetryStrategy(
+                                                retryCount: 3,
+                                                minBackoff: TimeSpan.FromSeconds(1.0),
+                                                maxBackoff: TimeSpan.FromSeconds(16.0),
+                                                deltaBackoff: TimeSpan.FromSeconds(2.0)));
+
         /// <summary>
         /// Binds a configuration section to an object.
         /// If the properties are decorated with the KeyVaultSecretName attribute, or key vault secret mapping are manually specified
@@ -317,23 +325,35 @@ namespace Microsoft.Extensions.Configuration
                 return builder;
 
             using var vault = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback));
+
+            // Add Retry Policy
+            vault.SetRetryPolicy(retryPolicy);
+
+            var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();
             var secrets = new List<KeyValuePair<string, string>>();
 
             // Gather secrets from Key Vault, one by one.
             foreach (var pair in keys)
+                tasks.Add(GetSecretAsync(vaultUrl, vault, pair));
+
+            Task.WaitAll(tasks.ToArray());
+
+            var tasksWithIssues = tasks.Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode != HttpStatusCode.OK);
+            foreach (var task in tasksWithIssues)
             {
-                try
-                {
-                    var secret = vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false).GetAwaiter().GetResult();
-                    secrets.Add(new KeyValuePair<string, string>(pair.Value, secret.Value));
-                }
-                catch (KeyVaultErrorException e)
-                    when (e.Response.StatusCode == HttpStatusCode.NotFound && suppressKeyNotFoundError)
-                {
-                    // Do nothing if it fails to find the value.
-                    Console.WriteLine($"Failed to find key vault setting: {pair}, exception: {e.Message}");
-                }
+                var taskResult = task.ConfigureAwait(false).GetAwaiter().GetResult();
+
+                if (taskResult.httpStatusCode == HttpStatusCode.NotFound)
+                    if (suppressKeyNotFoundError)// Do nothing if it fails to find the value.
+                        Console.WriteLine(taskResult.keyVaultErrorExceptionMessage);
+                    else
+                        throw new InvalidOperationException(taskResult.keyVaultErrorExceptionMessage);
+                else throw new InvalidOperationException(taskResult.keyVaultErrorExceptionMessage);
             }
+
+            var tasksOK = tasks.Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK);
+            foreach (var task in tasksOK)
+                secrets.Add(task.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
 
             // Add them to config.
             if (secrets.Any())
@@ -341,6 +361,36 @@ namespace Microsoft.Extensions.Configuration
 
             // Return updated builder.
             return builder;
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        private static async Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)> GetSecretAsync(Uri vaultUrl, KeyVaultClient vault, KeyValuePair<string, string> pair)
+        {
+            var httpStatusCode = HttpStatusCode.OK;
+            var keyVaultErrorExceptionMessage = string.Empty;
+            var keyValuePair = new KeyValuePair<string, string>(null, null);
+
+            try
+            {
+                var secret = await vault.GetSecretAsync(vaultUrl.AbsoluteUri, pair.Key).ConfigureAwait(false);
+                keyValuePair = new KeyValuePair<string, string>(pair.Value, secret.Value);
+            }
+            catch (KeyVaultErrorException e) when (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                httpStatusCode = HttpStatusCode.NotFound;
+
+                // Do nothing if it fails to find the value.
+                keyVaultErrorExceptionMessage = $"Failed to find key vault setting pair: {pair}, exception: {e.Message}";
+            }
+            catch (Exception e)
+            {
+                httpStatusCode = HttpStatusCode.BadRequest;
+
+                // Do nothing if it fails to find the value.
+                keyVaultErrorExceptionMessage = $"An unhandled exception has occured pair: {pair}, exception: {e.Message}";
+            }
+
+            return (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair);
         }
 
         /// <summary>

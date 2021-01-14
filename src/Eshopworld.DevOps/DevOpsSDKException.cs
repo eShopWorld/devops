@@ -21,5 +21,13 @@ namespace Eshopworld.DevOps
         protected DevOpsSDKException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
+
+        public DevOpsSDKException() : base()
+        {
+        }
+
+        public DevOpsSDKException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }
