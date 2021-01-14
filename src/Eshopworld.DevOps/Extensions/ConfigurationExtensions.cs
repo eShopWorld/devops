@@ -329,35 +329,35 @@ namespace Microsoft.Extensions.Configuration
             // Add Retry Policy
             vault.SetRetryPolicy(retryPolicy);
 
-            var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();
-            var secrets = new List<KeyValuePair<string, string>>();
+            var tasks = new List<Task<(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, KeyValuePair<string, string> keyValuePair)>>();            
 
-            // Gather secrets from Key Vault, one by one.
+            // Gather secrets from Key Vault in async way
             foreach (var pair in keys)
                 tasks.Add(GetSecretAsync(vaultUrl, vault, pair));
 
+            // Wait for all tasks and results
             Task.WaitAll(tasks.ToArray());
 
-            var tasksWithIssues = tasks.Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode != HttpStatusCode.OK);
-            foreach (var task in tasksWithIssues)
+            // Get the tasks with issues            
+            foreach (var task in tasks.Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode != HttpStatusCode.OK))
             {
-                var taskResult = task.ConfigureAwait(false).GetAwaiter().GetResult();
+                var (keyVaultErrorExceptionMessage, httpStatusCode, keyValuePair) = task.ConfigureAwait(false).GetAwaiter().GetResult();
 
-                if (taskResult.httpStatusCode == HttpStatusCode.NotFound)
+                if (httpStatusCode == HttpStatusCode.NotFound)
                     if (suppressKeyNotFoundError)// Do nothing if it fails to find the value.
-                        Console.WriteLine(taskResult.keyVaultErrorExceptionMessage);
+                        Console.WriteLine(keyVaultErrorExceptionMessage);
                     else
-                        throw new InvalidOperationException(taskResult.keyVaultErrorExceptionMessage);
-                else throw new InvalidOperationException(taskResult.keyVaultErrorExceptionMessage);
+                        throw new InvalidOperationException(keyVaultErrorExceptionMessage);
+                else throw new InvalidOperationException(keyVaultErrorExceptionMessage);
             }
 
-            var tasksOK = tasks.Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK);
-            foreach (var task in tasksOK)
-                secrets.Add(task.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
+            // Get Ok Tasks
+            var tasksOK = tasks
+               .Where(x => x.ConfigureAwait(false).GetAwaiter().GetResult().httpStatusCode == HttpStatusCode.OK)
+               .Select(x => x.ConfigureAwait(false).GetAwaiter().GetResult().keyValuePair);
 
-            // Add them to config.
-            if (secrets.Any())
-                builder.AddInMemoryCollection(secrets);
+            // Add them to config.            
+            builder.AddInMemoryCollection(tasksOK);
 
             // Return updated builder.
             return builder;
