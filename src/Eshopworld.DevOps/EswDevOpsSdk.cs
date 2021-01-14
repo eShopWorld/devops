@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using Azure.Identity;
 using JetBrains.Annotations;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 
 namespace Eshopworld.DevOps
