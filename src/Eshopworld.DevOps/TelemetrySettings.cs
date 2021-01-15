@@ -1,10 +1,12 @@
 ﻿using Eshopworld.DevOps.KeyVault;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Eshopworld.DevOps
 {
     /// <summary>
     /// Contains settings related to Telemetry.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class TelemetrySettings
     {
         /// <summary>

@@ -208,6 +208,7 @@ public class ConfigBuilderIntegrationTests
         config.TryGetValue<object>("MadeUpKey1", out _).Should().BeFalse();
     }
 
+    /// <summary>Verify exception on null builder</summary>
     [Fact, IsIntegration]
     public void Test_GetValue_ShouldThrowException_OnNullBuilder()
     {
@@ -219,7 +220,7 @@ public class ConfigBuilderIntegrationTests
 
         // Assert
         getValue.Should().Throw<ArgumentException>();
-    }
+    }   
 
     private class TestSettings
     {
