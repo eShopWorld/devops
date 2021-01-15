@@ -87,6 +87,29 @@ public class EswDevOpsSdkTests
         }
     }
 
+
+    [Theory, IsLayer0]
+    [InlineData("", DeploymentEnvironment.CI)]
+    [InlineData(null, DeploymentEnvironment.CI)]
+    public void GeEnvironmentTest_ShloudRaiseExceptionOnEmptyEnvironmentName(string envValue, DeploymentEnvironment env)
+    {
+        var prevEnv = Environment.GetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, envValue, EnvironmentVariableTarget.Process);
+        try
+        {
+            // Act
+            Action getEnvironment = () => { EswDevOpsSdk.GetEnvironment(); };
+
+            // Assert
+            getEnvironment.Should().Throw<DevOpsSDKException>();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.EnvironmentEnvVariable, prevEnv, EnvironmentVariableTarget.Process);
+        }
+    }
+
+
     [Theory, IsLayer0]
     [InlineData("West Europe", DeploymentRegion.WestEurope)]
     [InlineData("Southeast Asia", DeploymentRegion.SoutheastAsia)]
@@ -99,6 +122,27 @@ public class EswDevOpsSdkTests
         try
         {
             EswDevOpsSdk.TryGetDeploymentRegion(out var deploymentRegion);
+            deploymentRegion.Should().Be(region);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, prevRegion, EnvironmentVariableTarget.Process);
+        }
+    }
+
+    [Theory, IsLayer0]
+    [InlineData("Unrecognized Region Name", DeploymentRegion.None)]
+    public void GetDeploymentRegionTest_ShouldReturnFalseAndRegionMustBeSetToNone_OnUnrecognizedRegion(string regionValue, DeploymentRegion region)
+    {
+        var prevRegion = Environment.GetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable);
+        Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Process);
+        try
+        {
+            // Act
+            var result = EswDevOpsSdk.TryGetDeploymentRegion(out var deploymentRegion);
+
+            // Assert
+            result.Should().BeFalse();
             deploymentRegion.Should().Be(region);
         }
         finally
