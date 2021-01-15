@@ -8,15 +8,17 @@ using Eshopworld.DevOps;
 using Eshopworld.DevOps.KeyVault;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.Configuration
 {
-    public class SecretsCallbackModel
+    [ExcludeFromCodeCoverage]
+    public sealed class SecretsCallbackModel
     {
-        public SecretsCallbackModel(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)
+        internal SecretsCallbackModel(string keyVaultErrorExceptionMessage, HttpStatusCode httpStatusCode, string key)
         {
             KeyVaultErrorExceptionMessage = keyVaultErrorExceptionMessage;
             HttpStatusCode = httpStatusCode;

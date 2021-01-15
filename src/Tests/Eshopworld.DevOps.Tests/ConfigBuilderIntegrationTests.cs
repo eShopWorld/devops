@@ -74,11 +74,11 @@ public class ConfigBuilderIntegrationTests
 
         var prevRegion = Environment.GetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable);
         Environment.SetEnvironmentVariable(EswDevOpsSdk.DeploymentRegionEnvVariable, regionValue, EnvironmentVariableTarget.Process);
-        
+
         try
         {
             // Arrange
-            
+
             // Act
             IConfiguration configuration = new ConfigurationBuilder()
                 .UseDefaultConfigs(environment: envParam, deploymentRegion: regionParam)
@@ -190,6 +190,35 @@ public class ConfigBuilderIntegrationTests
         config.TryGetValue<object>("MappedName", out var result).Should().BeTrue();
         result.Should().NotBeNull();
         result.Should().Be("keyVaultItemValue");
+    }
+
+    /// <summary>Verify nothing is added on null dictionary</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecretsWithParams_NullOrEmptyDictionary()
+    {
+        // Arrange - Principle needs "Set" permissions to run this.        
+        IConfigurationBuilder builder = new ConfigurationBuilder();
+
+        // Act
+        builder.UseDefaultConfigs();
+        builder.AddKeyVaultSecrets(null);
+        var config = builder.Build();
+
+        // Assert
+        config.TryGetValue<object>("MadeUpKey1", out _).Should().BeFalse();
+    }
+
+    [Fact, IsIntegration]
+    public void Test_GetValue_ShouldThrowException_OnNullBuilder()
+    {
+        // Arrange - Principle needs "Set" permissions to run this.
+        ConfigurationBuilder builder = null;
+
+        // Act
+        Action getValue = () => { builder.GetValue<object>(null); };
+
+        // Assert
+        getValue.Should().Throw<ArgumentException>();
     }
 
     private class TestSettings
