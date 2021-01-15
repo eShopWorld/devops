@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Azure.Identity;
 using JetBrains.Annotations;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace Eshopworld.DevOps
 {
@@ -73,14 +71,13 @@ namespace Eshopworld.DevOps
             var configBuilder = CreateInitialConfigurationBuilder()
                 .AddEnvironmentVariables();
             var config = configBuilder.Build();
-            var vaultUrl = config[KeyVaultUrlKey];
-            if (string.IsNullOrEmpty(vaultUrl))
+
+            var isVaultUriValid = Uri.TryCreate(config[KeyVaultUrlKey], UriKind.Absolute, out Uri vaultUri);
+            if (!isVaultUriValid)
                 return config;
 
             var kvConfigBuilder = CreateInitialConfigurationBuilder()
-                .AddAzureKeyVault(vaultUrl,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
+                .AddAzureKeyVault(vaultUri, new DefaultAzureCredential())
                 .AddEnvironmentVariables();
             return kvConfigBuilder.Build();
 
@@ -166,7 +163,7 @@ namespace Eshopworld.DevOps
             if (string.IsNullOrWhiteSpace(regionString))
                 throw new DevOpsSDKException(
                     $"Could not find deployment region environment variable. Please make sure that {DeploymentRegionEnvVariable} environment variable exists and has value");
-            
+
             foreach (var field in typeof(DeploymentRegion).GetFields().Where(fi => !fi.IsSpecialName))
             {
                 var regionDescriptor = (RegionDescriptorAttribute)field.GetCustomAttributes(
@@ -210,10 +207,8 @@ namespace Eshopworld.DevOps
         /// Gets the subscription id of assigned to the current environment.
         /// </summary>
         /// <returns>Returns the subscription id.</returns>
-        public static string GetSubscriptionId()
-        {
-            return GetSubscriptionId(GetEnvironment());
-        }
+        public static string GetSubscriptionId() =>
+            GetSubscriptionId(GetEnvironment());
 
         internal static string GetSubscriptionId(DeploymentEnvironment environment)
         {
