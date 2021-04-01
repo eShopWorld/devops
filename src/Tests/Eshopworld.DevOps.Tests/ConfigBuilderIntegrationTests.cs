@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 public class ConfigBuilderIntegrationTests
@@ -100,6 +101,68 @@ public class ConfigBuilderIntegrationTests
         }
     }
 
+    /// <summary>Verify argument exception when kv url not specified.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_NoUrlKey()
+    {
+        // Arrange.
+        var builder = new ConfigurationBuilder();
+        builder.AddValue(EswDevOpsSdk.KeyVaultUrlKey, "");
+
+        // Act/Assert.
+        Assert.Throws<ArgumentNullException>(() => builder.AddKeyVaultSecrets(new Dictionary<string, string>()));
+    }
+
+    /// <summary>Verify invalid operation exception when key vault name is not correctly formatted.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_invalidUrlKey()
+    {
+        // Arrange.
+        var builder = new ConfigurationBuilder();
+        builder.AddValue("KeyVaultInstanceName", " ");
+
+        // Act/Assert.
+        Assert.Throws<InvalidOperationException>(() => builder.AddKeyVaultSecrets(new Dictionary<string, string>()));
+    }
+
+    /// <summary>Verify no key vault settings are added when keys array is null or empty.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_NullOrEmtpyKeysArr()
+    {
+        // Arrange.
+        IConfigurationBuilder builder = new ConfigurationBuilder();
+        string[] nullKeys = null;
+        string[] emtpyKeys = { };
+        var invalidUri = new Uri("http://nourl.com");
+
+        // Act
+        builder.AddKeyVaultSecrets(invalidUri, nullKeys);
+        builder.AddKeyVaultSecrets(invalidUri, emtpyKeys);
+
+        // Assert
+        var res = builder.Build();
+        res.Providers.Count().Should().Be(0);
+    }
+
+    /// <summary>Verify no key vault settings are added when keys dictionary are null or empty.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_NullOrEmtpyKeys()
+    {
+        // Arrange.
+        IConfigurationBuilder builder = new ConfigurationBuilder();
+        Dictionary<string, string> nullKeys = null;
+        Dictionary<string, string> emtpyKeys = new Dictionary<string, string>();
+        var invalidUri = new Uri("http://nourl.com");
+
+        // Act
+        builder.AddKeyVaultSecrets(invalidUri, nullKeys);
+        builder.AddKeyVaultSecrets(invalidUri, emtpyKeys);
+
+        // Assert
+        var res = builder.Build();
+        res.Providers.Count().Should().Be(0);
+    }
+
     /// <summary>Verify invalid operation exception when wrong key vault is set.</summary>
     [Fact, IsIntegration]
     public void Test_KeyVault_Builder_AddKeyVaultSecretsWithParams_InvalidKeyVault()
@@ -127,6 +190,20 @@ public class ConfigBuilderIntegrationTests
 
         // Assert
         loadSettings.Should().Throw<ArgumentNullException>();
+    }
+
+    /// <summary>Verify invalid operation exception occurs when trying to add secrets but vault uri is invalid.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_InvalidUri()
+    {
+        // Arrange - Principle needs "Set" permissions to run this.
+        IConfigurationBuilder builder = new ConfigurationBuilder();
+
+        // Act
+        Action loadSettings = () => { builder.AddKeyVaultSecrets(new Uri("http://nourl.com"), new[] { "key1", "key2" }); };
+
+        // Assert
+        loadSettings.Should().Throw<InvalidOperationException>();
     }
 
     /// <summary>

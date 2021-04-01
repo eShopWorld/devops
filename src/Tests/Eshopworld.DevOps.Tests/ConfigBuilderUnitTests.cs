@@ -1,12 +1,34 @@
-﻿using Eshopworld.Tests.Core;
+﻿using System;
+using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
-using Eshopworld.DevOps.KeyVault;
 using Xunit;
 
 public class ConfigBuilderUnitTests
 {
+    /// <summary>Ensure GetValue on the IConfigurationBuilder throws an argument exception when builder is null.</summary>
+    [Fact, IsUnit]
+    public void Test_ConfigBuilder_GetValue_NullConfig()
+    {
+        // Arrange
+        IConfigurationBuilder configBuilder = null;
+
+        // Act / Assert
+        Assert.Throws<ArgumentNullException>(() => configBuilder.GetValue<TestSettings>("somekey")); ;
+    }
+
+    /// <summary>Ensure BindBaseSection on the IConfigurationBuilder throws an argument exception when config is null.</summary>
+    [Fact, IsUnit]
+    public void Test_ConfigBuilder_BindBaseSection_NullConfig()
+    {
+        // Arrange
+        IConfiguration configBuilt = null;
+
+        // Act / Assert
+        Assert.Throws<ArgumentNullException>(() => configBuilt.BindBaseSection<TestSettings>());;
+    }
+
     /// <summary>Ensure BindBaseSection on the IConfigurationBuilder, binds root appsettings to a model as expected.</summary>
     [Fact, IsUnit]
     public void Test_ConfigBuilder_BindBaseSection()
@@ -146,16 +168,6 @@ public class ConfigBuilderUnitTests
         // Act/Assert
         configBuilder.TryGetValue("TestKey1", out string value).Should().BeTrue();
         value.Should().NotBeNullOrEmpty();
-    }
-
-    private class TestKvSettings
-    {
-        public string TestKey1 { get; set; }
-        public string TestKey2 { get; set; }
-        [KeyVaultSecretName("kv-name-3")]
-        public string TestKey3 { get; set; }
-        [KeyVaultSecretName("kv-name-4")]
-        public string TestKey4 { get; set; }
     }
 
     private class SubClass
