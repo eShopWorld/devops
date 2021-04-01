@@ -8,7 +8,7 @@ using Xunit;
 public class ConfigBuilderUnitTests
 {
     /// <summary>Ensure GetValue on the IConfigurationBuilder throws an argument exception when builder is null.</summary>
-    [Fact, IsIntegration]
+    [Fact, IsUnit]
     public void Test_ConfigBuilder_GetValue_NullConfig()
     {
         // Arrange
