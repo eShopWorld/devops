@@ -222,13 +222,14 @@ namespace Microsoft.Extensions.Configuration
             {
                 // If url was not set, look for an instance name and infer url.
                 var instanceName = builder.GetValue<string>("KeyVaultInstanceName");
-                vaultUrl = $"https://{instanceName}.vault.azure.net";
-            }
 
-            // Verify the key vault url is set.
-            if (string.IsNullOrEmpty(vaultUrl))
-            {
-                throw new InvalidOperationException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
+                // Verify the key vault url is set.
+                if (string.IsNullOrEmpty(instanceName))
+                {
+                    throw new ArgumentNullException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
+                }
+
+                vaultUrl = $"https://{instanceName}.vault.azure.net";
             }
 
             // Verify the key vault url is a valid url.

@@ -101,7 +101,31 @@ public class ConfigBuilderIntegrationTests
         }
     }
 
-    /// <summary>Verify argument exception when kv url not specified.</summary>
+    /// <summary>Verify argument exception when kv url not specified in the @params.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_NoUrlKeyParams()
+    {
+        // Arrange.
+        var builder = new ConfigurationBuilder();
+        builder.AddValue(EswDevOpsSdk.KeyVaultUrlKey, "");
+
+        // Act/Assert.
+        Assert.Throws<ArgumentNullException>(() => builder.AddKeyVaultSecrets("k1", "k2"));
+    }
+
+    /// <summary>Verify invalid operation exception when key vault name is not correctly formatted in the @params.</summary>
+    [Fact, IsIntegration]
+    public void Test_KeyVault_Builder_AddKeyVaultSecrets_invalidUrlKeyParams()
+    {
+        // Arrange.
+        var builder = new ConfigurationBuilder();
+        builder.AddValue("KeyVaultInstanceName", " ");
+
+        // Act/Assert.
+        Assert.Throws<InvalidOperationException>(() => builder.AddKeyVaultSecrets("k1", "k2"));
+    }
+
+    /// <summary>Verify argument exception when kv url not specified in the dictionary.</summary>
     [Fact, IsIntegration]
     public void Test_KeyVault_Builder_AddKeyVaultSecrets_NoUrlKey()
     {
@@ -113,7 +137,7 @@ public class ConfigBuilderIntegrationTests
         Assert.Throws<ArgumentNullException>(() => builder.AddKeyVaultSecrets(new Dictionary<string, string>()));
     }
 
-    /// <summary>Verify invalid operation exception when key vault name is not correctly formatted.</summary>
+    /// <summary>Verify invalid operation exception when key vault name is not correctly formatted in the dictionary.</summary>
     [Fact, IsIntegration]
     public void Test_KeyVault_Builder_AddKeyVaultSecrets_invalidUrlKey()
     {
