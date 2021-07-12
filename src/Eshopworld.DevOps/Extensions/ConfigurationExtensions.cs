@@ -282,6 +282,43 @@ namespace Microsoft.Extensions.Configuration
         }
 
         /// <summary>
+        /// Adds the key vault secrets and maps them to a different key in IConfiguration.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <param name="keys">KeyVault to Config Keys dictionary</param>
+        /// <param name="reloadInterval">The parameters.</param>
+        /// <returns>IConfigurationBuilder.</returns>
+        /// <exception cref="InvalidOperationException">Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config</exception>
+        /// <exception cref="InvalidOperationException">Vault url \"{vaultUrl}\" is invalid</exception>
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> keys, TimeSpan reloadInterval)
+        {
+            // Get the expected key vault url setting from the environment.
+            var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
+
+            if (string.IsNullOrEmpty(vaultUrl))
+            {
+                // If url was not set, look for an instance name and infer url.
+                var instanceName = builder.GetValue<string>("KeyVaultInstanceName");
+
+                // Verify the key vault url is set.
+                if (string.IsNullOrEmpty(instanceName))
+                {
+                    throw new ArgumentNullException($"Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config");
+                }
+
+                vaultUrl = $"https://{instanceName}.vault.azure.net";
+            }
+
+            // Verify the key vault url is a valid url.
+            if (!(Uri.TryCreate(vaultUrl, UriKind.Absolute, out var kvUri)))
+            {
+                throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
+            }
+
+            return AddKeyVaultSecrets(builder, kvUri, keys, reloadInterval);
+        }
+
+        /// <summary>
         /// Adds the key vault secrets specified.  Uses Msi auth and builds the instance name on the fly.
         /// Needs config value "KeyVaultInstanceName" to work.
         /// </summary>
