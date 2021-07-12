@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.15</Version>
+    <Version>5.1.15-preview</Version>
     <PackageReleaseNotes>Added AzureKeyVaultConfigurationOptions to load KeyVault secrets after ReloadInterval period.</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
