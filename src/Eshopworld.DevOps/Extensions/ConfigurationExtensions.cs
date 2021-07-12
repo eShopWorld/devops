@@ -249,11 +249,12 @@ namespace Microsoft.Extensions.Configuration
         /// Adds the key vault secrets and maps them to a different key in IConfiguration.
         /// </summary>
         /// <param name="builder">The builder.</param>
-        /// <param name="params">The parameters.</param>
+        /// <param name="keys">KeyVault to Config Keys dictionary</param>
+        /// <param name="reloadInterval">The parameters.</param>
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="InvalidOperationException">Vault url must be set, ensure \"{EswDevOpsSdk.KeyVaultUrlKey}\" or \"KeyVaultInstanceName\" have been set in config</exception>
         /// <exception cref="InvalidOperationException">Vault url \"{vaultUrl}\" is invalid</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> @params)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary<string, string> keys, TimeSpan? reloadInterval = null)
         {
             // Get the expected key vault url setting from the environment.
             var vaultUrl = builder.GetValue<string>(EswDevOpsSdk.KeyVaultUrlKey);
@@ -278,9 +279,12 @@ namespace Microsoft.Extensions.Configuration
                 throw new InvalidOperationException($"Vault url \"{vaultUrl}\" is invalid");
             }
 
-            return AddKeyVaultSecrets(builder, kvUri, @params);
+            return reloadInterval.HasValue ?
+                AddKeyVaultSecrets(builder, kvUri, keys, reloadInterval.Value) :
+                AddKeyVaultSecrets(builder, kvUri, keys);
         }
 
+        
         /// <summary>
         /// Adds the key vault secrets specified.  Uses Msi auth and builds the instance name on the fly.
         /// Needs config value "KeyVaultInstanceName" to work.
