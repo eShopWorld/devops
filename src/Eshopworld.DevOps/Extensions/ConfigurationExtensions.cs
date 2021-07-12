@@ -2,11 +2,15 @@
 
 namespace Microsoft.Extensions.Configuration
 {
-    using Azure.KeyVault;
-    using Azure.KeyVault.Models;
-    using Azure.Services.AppAuthentication;
     using Eshopworld.DevOps;
     using Eshopworld.DevOps.KeyVault;
+    using Eshopworld.DevOps.KeyVault.SecretManager;
+    using global::Azure.Extensions.AspNetCore.Configuration.Secrets;
+    using global::Azure.Identity;
+    using global::Azure.Security.KeyVault.Secrets;
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.KeyVault.Models;
+    using Microsoft.Azure.Services.AppAuthentication;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -55,8 +59,8 @@ namespace Microsoft.Extensions.Configuration
             }
 
             var builder = new PropertyMappingBuilder<T>();
-                propertyMappingAction.Invoke(builder);
-            
+            propertyMappingAction.Invoke(builder);
+
             return builder.Mappings.ToArray();
         }
 
@@ -119,7 +123,7 @@ namespace Microsoft.Extensions.Configuration
         public static T BindBaseSection<T>(this IConfiguration config)
         {
             if (config == null)
-                throw new ArgumentNullException( nameof(config), "Configuration must be set");
+                throw new ArgumentNullException(nameof(config), "Configuration must be set");
 
             var configBase = new ConfigurationBuilder();
             var items = new Dictionary<string, string>();
@@ -175,7 +179,7 @@ namespace Microsoft.Extensions.Configuration
                 region = depReg.ToRegionCode();
             }
 
-            if (! string.IsNullOrEmpty (region))
+            if (!string.IsNullOrEmpty(region))
             {
                 builder.AddJsonFile($"appsettings.{env}.{region}.json", true, true);
             }
@@ -199,7 +203,7 @@ namespace Microsoft.Extensions.Configuration
         {
             builder.AddEnvironmentVariables()
                    .AddCommandLine(Environment.GetCommandLineArgs());
-            
+
             foreach (var file in appSettingsFiles ?? throw new ArgumentNullException(nameof(appSettingsFiles)))
             {
                 builder.AddJsonFile(file, true);
@@ -310,7 +314,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>IConfigurationBuilder.</returns>
         /// <exception cref="ArgumentException">Vault url must be set</exception>
         /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
-        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string,string> keys, bool suppressKeyNotFoundError = true)
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string, string> keys, bool suppressKeyNotFoundError = true)
         {
             if (vaultUrl == null)
                 throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
@@ -352,6 +356,49 @@ namespace Microsoft.Extensions.Configuration
             }
         }
 
+
+        /// <summary>
+        /// Adds the key vault secrets specified.  Uses Msi auth and builds the instance name on the fly.
+        /// Needs config value "KeyVaultInstanceName" to work.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <param name="vaultUrl">Key vault url to connect to.</param>
+        /// <param name="keys">The dictionary of keys values to load (key) and map to (value).</param>
+        /// <param name="reloadInterval">Refresh interval to reload keyvault secrets</param>
+        /// error will be suppressed and it will just not add the key to the returned collection.</param>
+        /// <returns>IConfigurationBuilder.</returns>
+        /// <exception cref="ArgumentException">Vault url must be set</exception>
+        /// <exception cref="InvalidOperationException">Problem occurred retrieving secrets from KeyVault using Managed Identity</exception>
+        public static IConfigurationBuilder AddKeyVaultSecrets(this IConfigurationBuilder builder, Uri vaultUrl, Dictionary<string, string> keys, TimeSpan reloadInterval)
+        {
+            if (vaultUrl == null)
+                throw new ArgumentNullException(nameof(vaultUrl), "Vault url must be set");
+
+            if (keys == null || keys.Count == 0)
+                return builder;
+
+            try
+            {
+                var configOptions = new AzureKeyVaultConfigurationOptions()
+                {
+                    Manager = new SelectiveKVSecretManager(keys),
+                    ReloadInterval = reloadInterval,
+                };
+
+                builder.AddAzureKeyVault(
+                    new SecretClient(vaultUrl, new DefaultAzureCredential()),
+                    configOptions
+                    );
+
+                // Return updated builder.
+                return builder;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Problem occurred retrieving secrets from KeyVault using Managed Identity", ex);
+            }
+        }
+
         /// <summary>
         /// Add key/value to config builder.
         /// </summary>
@@ -361,7 +408,7 @@ namespace Microsoft.Extensions.Configuration
         /// <returns>Builder with key/value added.</returns>
         public static IConfigurationBuilder AddValue(this IConfigurationBuilder builder, string key, string value)
         {
-            return builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value)});
+            return builder.AddInMemoryCollection(new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>(key, value) });
         }
 
         /// <summary>
