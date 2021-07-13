@@ -1,4 +1,5 @@
-﻿using Azure.Identity;
+﻿using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
 using Eshopworld.DevOps.KeyVault.SecretManager;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
@@ -81,7 +82,7 @@ namespace Eshopworld.DevOps
                 .AddAzureKeyVault(
                     new Uri(vaultUrl),
                     new DefaultAzureCredential(),
-                    new LoadAllKVSecretManager()
+                    new KeyVaultSecretManager()
                     )
                 .AddEnvironmentVariables();
             return kvConfigBuilder.Build();

@@ -1,5 +1,5 @@
 ﻿using Azure.Extensions.AspNetCore.Configuration.Secrets;
-using Microsoft.Azure.KeyVault.Models;
+using Azure.Security.KeyVault.Secrets;
 using System.Collections.Generic;
 using System.IO;
 
@@ -7,24 +7,24 @@ namespace Eshopworld.DevOps.KeyVault.SecretManager
 {
     public class SelectiveKVSecretManager : KeyVaultSecretManager
     {
-        private readonly Dictionary<string, string> _keys;
+        private readonly IDictionary<string, string> _keys;
 
-        public SelectiveKVSecretManager(Dictionary<string, string> keys)
+        public SelectiveKVSecretManager(IDictionary<string, string> keys)
         {
             _keys = keys;
         }
 
-        public string GetKey(SecretBundle secret)
+        public override string GetKey(KeyVaultSecret secret)
         {
-            if (_keys.ContainsKey(secret?.SecretIdentifier.Name))
-                return _keys[secret?.SecretIdentifier.Name];
+            if (_keys.ContainsKey(secret?.Name))
+                return _keys[secret?.Name];
 
-            throw new InvalidDataException(secret?.SecretIdentifier.Name);
+            throw new InvalidDataException(secret?.Name);
         }
 
-        public bool Load(SecretItem secret)
+        public override bool Load(SecretProperties secret)
         {
-            return _keys.ContainsKey(secret?.Identifier?.Name);
+            return _keys.ContainsKey(secret?.Name);
         }
     }
 }
