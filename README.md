@@ -113,13 +113,41 @@ public class Program
           // Load various config sources.
           builder.UseDefaultConfigs();
 
-          // Pass the name of the secrets you wish to load into the configuration builder.
-          builder.AddKeyVaultSecrets(new Dictionary<string, string> {
+			// Pass the name of the secrets you wish to load into the configuration builder.
+			var keysDictionary = new Dictionary<string, string> {
 				{ "TenandId","MyClass:MyTenantId" },
 				{ "SubscriptionId","MyClass:SubClass1:MySubId" },
 				{ "OtherSecretName","OtherSecretName" }
-			});
+			};
+			builder.AddKeyVaultSecrets(keysDictionary);
 			// Optional overload - you can pass the specific KV url if needed.
+     }
+     ...
+}
+```
+
+### Auto reload secrets from keyvault
+
+If you want to auto reload the secrets from keyvault periodically, as well as using keyvault to config mapping please specify the refresh interval as second parameter as seen below.
+
+```csharp
+public class Program
+{
+     ...
+     public void ConfigureAppConfiguration(IConfigurationBuilder builder)
+     {
+			// Load various config sources.
+			builder.UseDefaultConfigs();
+
+			// Pass the name of the secrets you wish to load into the configuration builder.
+			var keysDictionary = new Dictionary<string, string> {
+				{ "TenandId","MyClass:MyTenantId" },
+				{ "SubscriptionId","MyClass:SubClass1:MySubId" },
+				{ "OtherSecretName","OtherSecretName" }
+			};
+
+			// Auto reload secrets from keyvault after given period specified as timespan
+			builder.AddKeyVaultSecrets(keysDictionary, TimeSpan.FromMinotes(30));
      }
      ...
 }
