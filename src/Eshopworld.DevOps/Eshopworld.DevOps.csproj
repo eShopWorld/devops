@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>5.1.15-preview2</Version>
+    <Version>5.1.15</Version>
     <PackageReleaseNotes>Added overload method AddKeyVaultSecrets(this IConfigurationBuilder builder, Dictionary(string,string) keys, TimeSpan reloadInterval).</PackageReleaseNotes>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eshopworld.DevOps</PackageId>
